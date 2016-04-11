@@ -172,7 +172,8 @@ public class ESQueryCore {
 	 * Bool
 	 */
 	private QueryBuilder getBoolQuery() {
-		QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("", "")).;
+		QueryBuilder query = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("", "")).mustNot(null)
+				.should(null);
 
 		return null;
 	}
