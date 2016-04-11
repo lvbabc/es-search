@@ -5,15 +5,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.elasticsearch.action.admin.cluster.stats.ClusterStatsResponse;
+import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +22,10 @@ import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.es.demo.ESTransportClient;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.utils.log.LogbackUtil;
+import zx.soft.utils.regex.RegexUtils;
 
 /**
- * ES搜索工具类
+ * ES搜索类
  *
  * @author lvbing
  *
@@ -44,6 +46,9 @@ public class ESQueryCore {
 		return core;
 	}
 
+	/**
+	 * 查询具体数据
+	 */
 	public QueryResult queryData(QueryParams queryParams) {
 
 		SearchRequestBuilder search = getSearcher(queryParams);
@@ -73,18 +78,21 @@ public class ESQueryCore {
 		logger.info("numFound=" + result.getNumFound());
 		logger.info("QTime=" + result.getQTime());
 
-		return null;
+		return result;
 	}
+
 	/**
-	 * 构建SearchRequestBuilder
-	 * @param queryParams
-	 * @return
+	 * 构建SearchRequestBuilder,将参数组合
 	 */
 	private SearchRequestBuilder getSearcher(QueryParams queryParams) {
 
 		SearchRequestBuilder search = null;
-		if (queryParams.getIndexName() != "" && queryParams.getIndexType() != "") {
-			search = client.prepareSearch(queryParams.getIndexName()).setSearchType(queryParams.getIndexType());
+		QueryBuilder query = null;
+		if (queryParams.getIndexName() != "") {
+			search = client.prepareSearch(queryParams.getIndexName());
+		}
+		if (queryParams.getIndexType() != "") {
+			search.setTypes(queryParams.getIndexType());
 		}
 		if (queryParams.getPreferenceType() != "") {
 			search.setPreference(queryParams.getPreferenceType());
@@ -101,38 +109,110 @@ public class ESQueryCore {
 		if (queryParams.getSize() != 10) {
 			search.setSize(queryParams.getSize());
 		}
+		if (queryParams.getSort() != "") {
+			String sortStr = queryParams.getSort();
+			List<String> funcs = RegexUtils.findMatchStrs(sortStr, "\\(.*\\)", true);
+			int i = 0;
+			for (String func : funcs) {
+				sortStr = sortStr.replace(func, "(" + i + ")");
+				i++;
+			}
+			for (String sort : sortStr.split(",")) {
+				List<String> parterns = RegexUtils.findMatchStrs(sort, "\\((\\d+)\\)", false);
+				if (!parterns.isEmpty()) {
+					int tmp = Integer.parseInt(parterns.get(0));
+					sort = sort.replaceAll("\\(" + parterns.get(0) + "\\)", funcs.get(tmp));
+				}
+				search.addSort(sort.split(":")[0],
+						"desc".equalsIgnoreCase(sort.split(":")[1]) ? SortOrder.DESC : SortOrder.ASC);
+			}
+		}
+		if (queryParams.getHlfl() != "") {
+			search.addHighlightedField(queryParams.getHlfl()).setHighlighterPreTags("<span style=\"color:red\">")
+					.setHighlighterPostTags("</span>");
+		}
+		//
+		//
+		//
+		/**
+		 * 如何选择QueryBuilder 待定
+		 */
+		search.setQuery(query).setPostFilter(query).addAggregation(null);
+		//
+		//
+		//
+		//
+		//
+		//
 
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
+		return search;
+	}
+
+	/**
+	 * 挑选QueryBuilder
+	 */
+	private List<QueryBuilder> getQueryBuilders(QueryParams queryParams) {
+		List<QueryBuilder> queryBuilders = new ArrayList<QueryBuilder>();
+		if (queryParams.getQ() == "") {
+			QueryBuilder matchAllQuery = QueryBuilders.matchAllQuery();
+			queryBuilders.add(matchAllQuery);
+		} else {
+			QueryBuilder queryStringQuery = QueryBuilders.queryStringQuery(queryParams.getQ());
+			queryBuilders.add(queryStringQuery);
+		}
+		if (queryParams.getRangeFiled() != "") {
+			QueryBuilder rangeQuery = QueryBuilders.rangeQuery(queryParams.getRangeFiled())
+					.from(queryParams.getRangeStart()).to(queryParams.getRangeEnd()).timeZone(null);
+			queryBuilders.add(rangeQuery);
+		}
+		return queryBuilders;
+	}
+
+	/**
+	 * Bool
+	 */
+	private QueryBuilder getBoolQuery() {
+		QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("", "")).;
+
 		return null;
 	}
 
 	/**
-	 * 构建QueryBuilder
-	 * @param queryParams
-	 * @return
+	 * Query 之 matchQuery
 	 */
-	private QueryBuilder getQuery(QueryParams queryParams) {
-		QueryBuilder query = QueryBuilders.fuzzyQuery("content", "协调");
+	private QueryBuilder getMatchQuery(String filed, String value) {
+		QueryBuilder query = QueryBuilders.matchQuery(filed, value);
 		return query;
 	}
 
+	/**
+	 *  Multi Match Query 可查询多个字段
+	 */
+	private QueryBuilder getMultiMatchQuery(String value, String filed1, String filed2) {
+		QueryBuilder query = QueryBuilders.multiMatchQuery(value, filed1, filed2);
+		return query;
+	}
 
+	/**
+	 * Filter 之 FuzzyQuery 根据提供的字符串作为前缀进行查询
+	 * @param queryParams
+	 * @return
+	 */
+	private QueryBuilder getFuzzyQuery(String filed, String value) {
+		QueryBuilder query = QueryBuilders.fuzzyQuery(filed, value);
+		return query;
+	}
+
+	/**
+	 * test
+	 */
+	private void test() {
+		SearchRequestBuilder srb1 = client.prepareSearch().setQuery(QueryBuilders.queryStringQuery("elasticsearch"))
+				.setSize(1);
+		SearchRequestBuilder srb2 = client.prepareSearch().setQuery(QueryBuilders.termQuery("name", "kimchy"))
+				.setSize(1);
+		MultiSearchResponse sr = client.prepareMultiSearch().add(srb1).add(srb2).execute().actionGet();
+	}
 
 	/**
 	 * 返回节点信息（详细信息）
@@ -191,26 +271,6 @@ public class ESQueryCore {
 			isFailed = response.getFailedShards() > 0;
 		}
 		return isFailed;
-	}
-
-
-
-
-	/**
-	 * 返回高亮文本
-	 *
-	 * @param hit
-	 * 				搜索高亮结果
-	 * @param key
-	 * 				搜索高亮字段
-	 * @return
-	 */
-	public Text getHightText(SearchHit hit, String key) {
-		return hit == null ? null
-				: hit.highlightFields().isEmpty() ? null
-						: hit.highlightFields().get(key) == null ? null
-								: hit.highlightFields().get(key).getFragments() == null ? null
-										: hit.highlightFields().get(key).getFragments()[0];
 	}
 
 }

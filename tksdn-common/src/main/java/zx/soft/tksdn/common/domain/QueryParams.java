@@ -13,6 +13,15 @@ public class QueryParams implements Cloneable {
 	private String preferenceType = "";
 	private String searchType = "";
 	private String[] includes = null;
+	private String q = "";//在所有字段中搜索
+
+	private String hlfl = "";
+	//范围查询通用字段
+	private String rangeFiled = "";
+	private String rangeStart = "";
+	private String rangeEnd = "";
+	private String timeZone = "";
+
 	private String sort = "";
 	private int from = 0;
 	private int size = 10;
@@ -101,6 +110,54 @@ public class QueryParams implements Cloneable {
 
 	public void setSort(String sort) {
 		this.sort = sort;
+	}
+
+	public String getQ() {
+		return q;
+	}
+
+	public void setQ(String q) {
+		this.q = q;
+	}
+
+	public String getRangeFiled() {
+		return rangeFiled;
+	}
+
+	public void setRangeFiled(String rangeFiled) {
+		this.rangeFiled = rangeFiled;
+	}
+
+	public String getRangeStart() {
+		return rangeStart;
+	}
+
+	public void setRangeStart(String rangeStart) {
+		this.rangeStart = rangeStart;
+	}
+
+	public String getRangeEnd() {
+		return rangeEnd;
+	}
+
+	public void setRangeEnd(String rangeEnd) {
+		this.rangeEnd = rangeEnd;
+	}
+
+	public String getTimeZone() {
+		return timeZone;
+	}
+
+	public void setTimeZone(String timeZone) {
+		this.timeZone = timeZone;
+	}
+
+	public String getHlfl() {
+		return hlfl;
+	}
+
+	public void setHlfl(String hlfl) {
+		this.hlfl = hlfl;
 	}
 
 }

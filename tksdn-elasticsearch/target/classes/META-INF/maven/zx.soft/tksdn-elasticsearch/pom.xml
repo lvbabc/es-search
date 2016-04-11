@@ -17,6 +17,7 @@
 			<groupId>zx.soft</groupId>
 			<artifactId>common-utils</artifactId>
 			<version>2.0.0</version>
+			<!--  
 			<exclusions>
 				<exclusion>
 					<groupId>fr.inria.powerapi.sensor</groupId>
@@ -31,6 +32,7 @@
 					<artifactId>jnr-posix</artifactId>
 				</exclusion>
 			</exclusions>
+		-->
 		</dependency>
 		<!-- es包 -->
 		<dependency>
