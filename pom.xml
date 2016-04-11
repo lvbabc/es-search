@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>zx.soft</groupId>
 		<artifactId>common-parent</artifactId>
-		<version>1.0.0</version>
+		<version>4.0.0</version>
 	</parent>
 
 	<artifactId>tksdn-search</artifactId>
@@ -20,27 +20,15 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>2.2.0</version><!--$NO-MVN-MAN-VER$-->
+		</dependency>
+		
+		<dependency>
 			<groupId>zx.soft</groupId>
 			<artifactId>common-utils</artifactId>
 			<version>2.0.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>fr.inria.powerapi.sensor</groupId>
-					<artifactId>sensor-cpu-sigar</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.restlet.jse</groupId>
-					<artifactId>org.restlet.ext.jackson</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.github.jnr</groupId>
-					<artifactId>jnr-posix</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna-platform</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 	</dependencies>
 

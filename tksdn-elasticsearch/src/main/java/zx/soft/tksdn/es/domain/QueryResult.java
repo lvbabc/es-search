@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.elasticsearch.search.SearchHit;
-
 /**
  * 查询结果类
  *
@@ -19,15 +17,15 @@ public class QueryResult {
 
 	private long numFound;
 	private long QTime;
-	private List<SearchHit> searchHit = new ArrayList<>();
+	private List<Map<String, Object>> searchHit = new ArrayList<>();
 	private final Map<String, Map<String, List<String>>> highlighting = null;
 
 
-	public List<SearchHit> getSearchHit() {
+	public List<Map<String, Object>> getSearchHit() {
 		return searchHit;
 	}
 
-	public void setSearchHit(List<SearchHit> searchHit) {
+	public void setSearchHit(List<Map<String, Object>> searchHit) {
 		this.searchHit = searchHit;
 	}
 

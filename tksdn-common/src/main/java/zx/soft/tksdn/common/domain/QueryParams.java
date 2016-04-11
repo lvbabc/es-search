@@ -1,5 +1,7 @@
 package zx.soft.tksdn.common.domain;
 
+import java.util.Arrays;
+
 /**
  * 查询参数类
  *
@@ -45,7 +47,10 @@ public class QueryParams implements Cloneable {
 
 	@Override
 	public String toString() {
-		return null;
+		return "QueryParams [indexName=" + indexName + ", indexType=" + indexType + ", preferenceType=" + preferenceType
+				+ ", searchType=" + searchType + ", includes=" + Arrays.toString(includes) + ", q=" + q + ", hlfl="
+				+ hlfl + ", rangeFiled=" + rangeFiled + ", rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd
+				+ ", timeZone=" + timeZone + ", sort=" + sort + ", from=" + from + ", size=" + size + "]";
 	}
 
 	public String getIndexName() {

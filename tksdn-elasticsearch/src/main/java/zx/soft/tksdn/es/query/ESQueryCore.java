@@ -69,9 +69,9 @@ public class ESQueryCore {
 		result.setQTime(response.getTookInMillis());
 		result.setNumFound(response.getHits().getTotalHits());
 
-		List<SearchHit> sHits = new ArrayList<SearchHit>();
+		List<Map<String, Object>> sHits = new ArrayList<Map<String, Object>>();
 		for (SearchHit sHit : searchHists) {
-			sHits.add(sHit);
+			sHits.add(sHit.getSource());
 		}
 		result.setSearchHit(sHits);
 
@@ -137,7 +137,9 @@ public class ESQueryCore {
 		/**
 		 * 如何选择QueryBuilder 待定
 		 */
-		search.setQuery(query).setPostFilter(query).addAggregation(null);
+		QueryBuilder queryStringQuery = QueryBuilders.queryStringQuery(queryParams.getQ());
+		search.setQuery(queryStringQuery);
+		//		search.setQuery(query).setPostFilter(query).addAggregation(null);
 		//
 		//
 		//
@@ -162,7 +164,8 @@ public class ESQueryCore {
 		}
 		if (queryParams.getRangeFiled() != "") {
 			QueryBuilder rangeQuery = QueryBuilders.rangeQuery(queryParams.getRangeFiled())
-					.from(queryParams.getRangeStart()).to(queryParams.getRangeEnd()).timeZone(null);
+					.from(queryParams.getRangeStart()).to(queryParams.getRangeEnd())
+					.timeZone(queryParams.getTimeZone());
 			queryBuilders.add(rangeQuery);
 		}
 		return queryBuilders;
