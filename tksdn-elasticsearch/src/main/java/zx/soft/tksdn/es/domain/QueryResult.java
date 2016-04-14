@@ -2,7 +2,8 @@ package zx.soft.tksdn.es.domain;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
+import zx.soft.tksdn.common.index.BrowsingRecord;
 
 /**
  * 查询结果类
@@ -17,15 +18,15 @@ public class QueryResult {
 
 	private long numFound;
 	private long QTime;
-	private List<Map<String, Object>> searchHit = new ArrayList<>();
-	private final Map<String, Map<String, List<String>>> highlighting = null;
+	private List<BrowsingRecord> searchHit = new ArrayList<>();
+	private Object[] sort = null;
+	private List<SimpleAggInfo> agg = null;
 
-
-	public List<Map<String, Object>> getSearchHit() {
+	public List<BrowsingRecord> getSearchHit() {
 		return searchHit;
 	}
 
-	public void setSearchHit(List<Map<String, Object>> searchHit) {
+	public void setSearchHit(List<BrowsingRecord> searchHit) {
 		this.searchHit = searchHit;
 	}
 
@@ -51,6 +52,22 @@ public class QueryResult {
 
 	public void setNumFound(long numFound) {
 		this.numFound = numFound;
+	}
+
+	public Object[] getSort() {
+		return sort;
+	}
+
+	public void setSort(Object[] sort) {
+		this.sort = sort;
+	}
+
+	public List<SimpleAggInfo> getAgg() {
+		return agg;
+	}
+
+	public void setAgg(List<SimpleAggInfo> agg) {
+		this.agg = agg;
 	}
 
 }

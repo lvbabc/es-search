@@ -34,8 +34,10 @@ public class QueryController {
 		QueryParams queryParams = new QueryParams();
 		queryParams.setQ(request.getParameter("q") == null ? "" : request.getParameter("q"));
 		queryParams.setSort(request.getParameter("sort") == null ? "" : request.getParameter("sort"));
-		queryParams.setFrom(request.getParameter("from") == null ? 0 : Integer.parseInt(request.getParameter("start")));
-		queryParams.setSize(request.getParameter("size") == null ? 10 : Integer.parseInt(request.getParameter("rows")));
+		queryParams.setFrom(request.getParameter("from") == null ? 0 : Integer.parseInt(request.getParameter("from")));
+		queryParams.setSize(request.getParameter("size") == null ? 10 : Integer.parseInt(request.getParameter("size")));
+		queryParams.setHlfl(request.getParameter("hlfl") == null ? "" : request.getParameter("hlfl"));
+		queryParams.setAggregation(request.getParameter("agg") == null ? "" : request.getParameter("agg"));
 		logger.info(queryParams.toString());
 		return queryService.queryData(queryParams);
 	}

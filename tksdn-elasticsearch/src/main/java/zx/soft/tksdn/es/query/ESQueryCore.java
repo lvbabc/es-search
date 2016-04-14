@@ -1,32 +1,37 @@
 package zx.soft.tksdn.es.query;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.elasticsearch.action.admin.cluster.stats.ClusterStatsResponse;
-import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import zx.soft.tksdn.common.domain.QueryParams;
+import zx.soft.tksdn.common.index.BrowsingRecord;
 import zx.soft.tksdn.es.demo.ESTransportClient;
 import zx.soft.tksdn.es.domain.QueryResult;
+import zx.soft.tksdn.es.domain.SimpleAggInfo;
+import zx.soft.utils.json.JsonUtils;
 import zx.soft.utils.log.LogbackUtil;
 import zx.soft.utils.regex.RegexUtils;
 
 /**
  * ES搜索类
- *
+ * 因ES搜索分类较多，暂时不进行合并，后期再合并
  * @author lvbing
  *
  */
@@ -49,9 +54,9 @@ public class ESQueryCore {
 	/**
 	 * 查询具体数据
 	 */
-	public QueryResult queryData(QueryParams queryParams) {
+	public QueryResult queryData(QueryParams queryParams, SearchRequestBuilder search) {
 
-		SearchRequestBuilder search = getSearcher(queryParams);
+		//		SearchRequestBuilder search = getSearcher(queryParams);
 		SearchResponse response = null;
 		try {
 			response = search.setExplain(true).execute().actionGet();
@@ -59,22 +64,22 @@ public class ESQueryCore {
 			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
 			throw new RuntimeException(e);
 		}
-		if (response == null || response.getHits() == null) {
+		if (response == null) {//|| response.getHits() == null || response.getHits().getHits().length == 0) {
 			logger.error("no response!");
+			return new QueryResult();
 		}
 		QueryResult result = new QueryResult();
 		SearchHits hits = response.getHits();
 		SearchHit[] searchHists = hits.getHits();
 
+		result.setAgg(transAgg(response, queryParams));
 		result.setQTime(response.getTookInMillis());
 		result.setNumFound(response.getHits().getTotalHits());
-
-		List<Map<String, Object>> sHits = new ArrayList<Map<String, Object>>();
-		for (SearchHit sHit : searchHists) {
-			sHits.add(sHit.getSource());
+		if (hits.getHits().length != 0) {
+			result.setSort(hits.getHits()[0].getSortValues());
 		}
-		result.setSearchHit(sHits);
-
+		result.setSearchHit(transSearchHit(searchHists, queryParams));
+		//		result.setHighlighting(highlighting);
 		logger.info("numFound=" + result.getNumFound());
 		logger.info("QTime=" + result.getQTime());
 
@@ -84,7 +89,7 @@ public class ESQueryCore {
 	/**
 	 * 构建SearchRequestBuilder,将参数组合
 	 */
-	private SearchRequestBuilder getSearcher(QueryParams queryParams) {
+	public SearchRequestBuilder getSearcher(QueryParams queryParams, QueryBuilder queryBuilder) {
 
 		SearchRequestBuilder search = null;
 		QueryBuilder query = null;
@@ -128,94 +133,106 @@ public class ESQueryCore {
 			}
 		}
 		if (queryParams.getHlfl() != "") {
-			search.addHighlightedField(queryParams.getHlfl()).setHighlighterPreTags("<span style=\"color:red\">")
-					.setHighlighterPostTags("</span>");
+			for (String field : queryParams.getHlfl().split(",")) {
+				search.addHighlightedField(field);
+			}
+			search.setHighlighterPreTags("<span style=\"color:red\">").setHighlighterPostTags("</span>")
+					.setHighlighterFragmentSize(10000);
 		}
+		//		if (queryParams.getAggregation() != "") {
+		//			search.addAggregation(AggregationBuilders.terms(queryParams.getAggregation())
+		//					.field(queryParams.getAggregation()).size(15));
+		//
+		//			search.addAggregation(AggregationBuilders.dateHistogram("").field("index_time")
+		//					.extendedBounds(new DateTime(), new DateTime()).interval(DateHistogramInterval.DAY).format("yyy-MM-dd HH:mm:ss"));
+		//		}
 		//
 		//
 		//
 		/**
 		 * 如何选择QueryBuilder 待定
 		 */
-		QueryBuilder queryStringQuery = QueryBuilders.queryStringQuery(queryParams.getQ());
-		search.setQuery(queryStringQuery);
+		//		QueryBuilder queryStringQuery = QueryBuilders.termQuery("content", queryParams.getQ());
+		//		QueryBuilder bool = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", queryParams.getQ()))
+		//				.should(QueryBuilders.termQuery("keyword", queryParams.getQ()));
+
+		//				.operator(MatchQueryBuilder.Operator.AND);
+		search.setPostFilter(queryBuilder);
+		//		search.setQuery(queryBuilder);
 		//		search.setQuery(query).setPostFilter(query).addAggregation(null);
-		//
-		//
-		//
-		//
-		//
 		//
 
 		return search;
 	}
 
 	/**
-	 * 挑选QueryBuilder
-	 */
-	private List<QueryBuilder> getQueryBuilders(QueryParams queryParams) {
-		List<QueryBuilder> queryBuilders = new ArrayList<QueryBuilder>();
-		if (queryParams.getQ() == "") {
-			QueryBuilder matchAllQuery = QueryBuilders.matchAllQuery();
-			queryBuilders.add(matchAllQuery);
-		} else {
-			QueryBuilder queryStringQuery = QueryBuilders.queryStringQuery(queryParams.getQ());
-			queryBuilders.add(queryStringQuery);
-		}
-		if (queryParams.getRangeFiled() != "") {
-			QueryBuilder rangeQuery = QueryBuilders.rangeQuery(queryParams.getRangeFiled())
-					.from(queryParams.getRangeStart()).to(queryParams.getRangeEnd())
-					.timeZone(queryParams.getTimeZone());
-			queryBuilders.add(rangeQuery);
-		}
-		return queryBuilders;
-	}
-
-	/**
-	 * Bool
-	 */
-	private QueryBuilder getBoolQuery() {
-		QueryBuilder query = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("", "")).mustNot(null)
-				.should(null);
-
-		return null;
-	}
-
-	/**
-	 * Query 之 matchQuery
-	 */
-	private QueryBuilder getMatchQuery(String filed, String value) {
-		QueryBuilder query = QueryBuilders.matchQuery(filed, value);
-		return query;
-	}
-
-	/**
-	 *  Multi Match Query 可查询多个字段
-	 */
-	private QueryBuilder getMultiMatchQuery(String value, String filed1, String filed2) {
-		QueryBuilder query = QueryBuilders.multiMatchQuery(value, filed1, filed2);
-		return query;
-	}
-
-	/**
-	 * Filter 之 FuzzyQuery 根据提供的字符串作为前缀进行查询
+	 * 获取聚合查询结果
+	 * @param response
 	 * @param queryParams
 	 * @return
 	 */
-	private QueryBuilder getFuzzyQuery(String filed, String value) {
-		QueryBuilder query = QueryBuilders.fuzzyQuery(filed, value);
-		return query;
+	private List<SimpleAggInfo> transAgg(SearchResponse response, QueryParams queryParams) {
+		List<SimpleAggInfo> agg = new ArrayList<>();
+
+		if (response.getAggregations() != null) {
+			//			Terms terms = response.getAggregations().get(queryParams.getAggregation());
+			//			List<Terms.Bucket> buckets = terms.getBuckets();
+			SimpleAggInfo aggInfo = new SimpleAggInfo();
+			HashMap<String, Long> t = new LinkedHashMap<>();
+			//			for (Terms.Bucket bucket : buckets) {
+			//				t.put(bucket.getKeyAsString(), bucket.getDocCount());
+			//
+			//			}
+			Histogram histogram = response.getAggregations().get("index_time");
+			List<Histogram.Bucket> buckets = (List<Histogram.Bucket>) histogram.getBuckets();
+			for (Histogram.Bucket bucket : buckets) {
+				t.put(bucket.getKeyAsString(), bucket.getDocCount());
+			}
+			aggInfo.setName(queryParams.getAggregation());
+			aggInfo.setValues(t);
+			agg.add(aggInfo);
+		}
+		return agg;
 	}
 
 	/**
-	 * test
+	 * 获取ES文档
+	 * @param searchHists
+	 * @param queryParams
+	 * @return
 	 */
-	private void test() {
-		SearchRequestBuilder srb1 = client.prepareSearch().setQuery(QueryBuilders.queryStringQuery("elasticsearch"))
-				.setSize(1);
-		SearchRequestBuilder srb2 = client.prepareSearch().setQuery(QueryBuilders.termQuery("name", "kimchy"))
-				.setSize(1);
-		MultiSearchResponse sr = client.prepareMultiSearch().add(srb1).add(srb2).execute().actionGet();
+	private List<BrowsingRecord> transSearchHit(SearchHit[] searchHists, QueryParams queryParams) {
+		if (searchHists.length == 0) {
+			return null;
+		}
+		List<BrowsingRecord> sHits = new ArrayList<BrowsingRecord>();
+		//		List<String> highlighting = new ArrayList<String>();
+
+		Map<String, Object> fields = new LinkedHashMap<>();
+		for (SearchHit sHit : searchHists) {
+
+			sHit.getId();
+			String json = sHit.getSourceAsString();
+			BrowsingRecord browsingRecord = JsonUtils.getObject(json, BrowsingRecord.class);
+
+			if (queryParams.getHlfl() != "") {
+				for (String field : queryParams.getHlfl().split(",")) {
+
+					if (sHit.getHighlightFields().get(field) != null) {
+						Text[] titleTexts = sHit.getHighlightFields().get(field).getFragments();
+						String tString = "";
+						for (Text text : titleTexts) {
+							tString += text;
+						}
+						fields.put(field, tString);
+						browsingRecord.setField(fields);
+					}
+				}
+			}
+			browsingRecord.setId(sHit.getId());
+			sHits.add(browsingRecord);
+		}
+		return sHits;
 	}
 
 	/**
@@ -275,6 +292,10 @@ public class ESQueryCore {
 			isFailed = response.getFailedShards() > 0;
 		}
 		return isFailed;
+	}
+
+	public void close() {
+		client.close();
 	}
 
 }

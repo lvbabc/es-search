@@ -17,7 +17,12 @@ public class QueryParams implements Cloneable {
 	private String[] includes = null;
 	private String q = "";//在所有字段中搜索
 
-	private String hlfl = "";
+	private String aggregation = "";
+
+	private String term = "";
+	private String value = "";
+
+	private String hlfl = null;;
 	//范围查询通用字段
 	private String rangeFiled = "";
 	private String rangeStart = "";
@@ -48,9 +53,10 @@ public class QueryParams implements Cloneable {
 	@Override
 	public String toString() {
 		return "QueryParams [indexName=" + indexName + ", indexType=" + indexType + ", preferenceType=" + preferenceType
-				+ ", searchType=" + searchType + ", includes=" + Arrays.toString(includes) + ", q=" + q + ", hlfl="
-				+ hlfl + ", rangeFiled=" + rangeFiled + ", rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd
-				+ ", timeZone=" + timeZone + ", sort=" + sort + ", from=" + from + ", size=" + size + "]";
+				+ ", searchType=" + searchType + ", includes=" + Arrays.toString(includes) + ", q=" + q
+				+ ", aggregation=" + aggregation + ", term=" + term + ", value=" + value + ", hlfl=" + hlfl
+				+ ", rangeFiled=" + rangeFiled + ", rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd + ", timeZone="
+				+ timeZone + ", sort=" + sort + ", from=" + from + ", size=" + size + "]";
 	}
 
 	public String getIndexName() {
@@ -163,6 +169,30 @@ public class QueryParams implements Cloneable {
 
 	public void setHlfl(String hlfl) {
 		this.hlfl = hlfl;
+	}
+
+	public String getTerm() {
+		return term;
+	}
+
+	public void setTerm(String term) {
+		this.term = term;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	public String getAggregation() {
+		return aggregation;
+	}
+
+	public void setAggregation(String aggregation) {
+		this.aggregation = aggregation;
 	}
 
 }

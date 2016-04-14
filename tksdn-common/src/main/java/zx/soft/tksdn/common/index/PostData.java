@@ -17,7 +17,7 @@ public class PostData implements Serializable {
 	private static final long serialVersionUID = 3183580989697121542L;
 
 	private int num;
-	private List<BrowsingRecord> records;
+	private List<RecordInfo> records;
 
 	public int getNum() {
 		return num;
@@ -27,17 +27,17 @@ public class PostData implements Serializable {
 		this.num = num;
 	}
 
-	public List<BrowsingRecord> getRecords() {
+	public List<RecordInfo> getRecords() {
 		return records;
 	}
 
-	public void setRecords(List<BrowsingRecord> records) {
+	public void setRecords(List<RecordInfo> records) {
 		this.records = records;
 	}
 
 	public static void main(String[] args) {
 		//  2014-12-28 16:33:47    1419755627695
-		BrowsingRecord recordInfo = new BrowsingRecord();
+		RecordInfo recordInfo = new RecordInfo();
 		recordInfo.setId("sentiment");
 		recordInfo.setPlatform(10);
 		recordInfo.setMid("123456789987654321");
@@ -83,7 +83,7 @@ public class PostData implements Serializable {
 		recordInfo.setLocation_code(123);
 		recordInfo.setProvince_code(124);
 		recordInfo.setCity_code(125);
-		List<BrowsingRecord> records = new ArrayList<>();
+		List<RecordInfo> records = new ArrayList<>();
 		records.add(recordInfo);
 		PostData data = new PostData();
 		data.setNum(1);
