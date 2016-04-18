@@ -17,8 +17,9 @@ public class QueryParams implements Cloneable {
 	private String[] includes = null;
 	private String q = "";//在所有字段中搜索
 
-	private String aggregation = "";
-
+	private String termAgg = "";
+	private String dateHistAgg = "";
+	private String dateInterval = null;
 	private String term = "";
 	private String value = "";
 
@@ -53,8 +54,8 @@ public class QueryParams implements Cloneable {
 	@Override
 	public String toString() {
 		return "QueryParams [indexName=" + indexName + ", indexType=" + indexType + ", preferenceType=" + preferenceType
-				+ ", searchType=" + searchType + ", includes=" + Arrays.toString(includes) + ", q=" + q
-				+ ", aggregation=" + aggregation + ", term=" + term + ", value=" + value + ", hlfl=" + hlfl
+				+ ", searchType=" + searchType + ", includes=" + Arrays.toString(includes) + ", q=" + q + ", termAgg="
+				+ termAgg + ", dateHistAgg=" + dateHistAgg + ", term=" + term + ", value=" + value + ", hlfl=" + hlfl
 				+ ", rangeFiled=" + rangeFiled + ", rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd + ", timeZone="
 				+ timeZone + ", sort=" + sort + ", from=" + from + ", size=" + size + "]";
 	}
@@ -187,12 +188,28 @@ public class QueryParams implements Cloneable {
 		this.value = value;
 	}
 
-	public String getAggregation() {
-		return aggregation;
+	public String getTermAgg() {
+		return termAgg;
 	}
 
-	public void setAggregation(String aggregation) {
-		this.aggregation = aggregation;
+	public void setTermAgg(String termAgg) {
+		this.termAgg = termAgg;
+	}
+
+	public String getDateHistAgg() {
+		return dateHistAgg;
+	}
+
+	public void setDateHistAgg(String dateHistAgg) {
+		this.dateHistAgg = dateHistAgg;
+	}
+
+	public String getDateInterval() {
+		return dateInterval;
+	}
+
+	public void setDateInterval(String dateInterval) {
+		this.dateInterval = dateInterval;
 	}
 
 }

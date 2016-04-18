@@ -3,6 +3,8 @@ package zx.soft.tksdn.es.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.elasticsearch.search.aggregations.bucket.histogram.Histogram.Bucket;
+
 import zx.soft.tksdn.common.index.BrowsingRecord;
 
 /**
@@ -20,7 +22,9 @@ public class QueryResult {
 	private long QTime;
 	private List<BrowsingRecord> searchHit = new ArrayList<>();
 	private Object[] sort = null;
+
 	private List<SimpleAggInfo> agg = null;
+	private List<Bucket> dateAgg = null;
 
 	public List<BrowsingRecord> getSearchHit() {
 		return searchHit;
@@ -68,6 +72,14 @@ public class QueryResult {
 
 	public void setAgg(List<SimpleAggInfo> agg) {
 		this.agg = agg;
+	}
+
+	public List<Bucket> getDateAgg() {
+		return dateAgg;
+	}
+
+	public void setDateAgg(List<Bucket> dateAgg) {
+		this.dateAgg = dateAgg;
 	}
 
 }

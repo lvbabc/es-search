@@ -37,8 +37,8 @@ public class QueryController {
 		queryParams.setFrom(request.getParameter("from") == null ? 0 : Integer.parseInt(request.getParameter("from")));
 		queryParams.setSize(request.getParameter("size") == null ? 10 : Integer.parseInt(request.getParameter("size")));
 		queryParams.setHlfl(request.getParameter("hlfl") == null ? "" : request.getParameter("hlfl"));
-		queryParams.setAggregation(request.getParameter("agg") == null ? "" : request.getParameter("agg"));
+		queryParams.setTermAgg(request.getParameter("agg") == null ? "" : request.getParameter("agg"));
 		logger.info(queryParams.toString());
-		return queryService.queryData(queryParams);
+		return queryService.queryStringQuery(queryParams);
 	}
 }

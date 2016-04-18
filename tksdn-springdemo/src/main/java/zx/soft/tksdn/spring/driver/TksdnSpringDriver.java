@@ -6,7 +6,7 @@ import zx.soft.utils.driver.ProgramDriver;
 /**
  * 驱动类
  *
- * @author wanggang
+ * @author lvbing
  *
  */
 public class TksdnSpringDriver {

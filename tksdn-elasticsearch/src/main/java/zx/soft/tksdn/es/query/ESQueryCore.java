@@ -15,14 +15,16 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.common.index.BrowsingRecord;
-import zx.soft.tksdn.es.demo.ESTransportClient;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.domain.SimpleAggInfo;
 import zx.soft.utils.json.JsonUtils;
@@ -72,7 +74,8 @@ public class ESQueryCore {
 		SearchHits hits = response.getHits();
 		SearchHit[] searchHists = hits.getHits();
 
-		result.setAgg(transAgg(response, queryParams));
+		result.setAgg(transTermAgg(response, queryParams));
+		result.setDateAgg(transDateAgg(response, queryParams));
 		result.setQTime(response.getTookInMillis());
 		result.setNumFound(response.getHits().getTotalHits());
 		if (hits.getHits().length != 0) {
@@ -139,13 +142,16 @@ public class ESQueryCore {
 			search.setHighlighterPreTags("<span style=\"color:red\">").setHighlighterPostTags("</span>")
 					.setHighlighterFragmentSize(10000);
 		}
-		//		if (queryParams.getAggregation() != "") {
-		//			search.addAggregation(AggregationBuilders.terms(queryParams.getAggregation())
-		//					.field(queryParams.getAggregation()).size(15));
-		//
-		//			search.addAggregation(AggregationBuilders.dateHistogram("").field("index_time")
-		//					.extendedBounds(new DateTime(), new DateTime()).interval(DateHistogramInterval.DAY).format("yyy-MM-dd HH:mm:ss"));
-		//		}
+		if (queryParams.getTermAgg() != "") {
+			search.addAggregation(
+					AggregationBuilders.terms(queryParams.getTermAgg()).field(queryParams.getTermAgg()).size(15));
+		}
+		if (queryParams.getDateHistAgg() != "") {
+			DateHistogramInterval interval = new DateHistogramInterval(queryParams.getDateInterval());
+			search.addAggregation(
+					AggregationBuilders.dateHistogram(queryParams.getDateHistAgg()).field(queryParams.getDateHistAgg())
+							.interval(interval).minDocCount(0).format("yyy-MM-dd HH:mm:ss"));
+		}
 		//
 		//
 		//
@@ -157,12 +163,32 @@ public class ESQueryCore {
 		//				.should(QueryBuilders.termQuery("keyword", queryParams.getQ()));
 
 		//				.operator(MatchQueryBuilder.Operator.AND);
-		search.setPostFilter(queryBuilder);
-		//		search.setQuery(queryBuilder);
+		//		search.setPostFilter(queryBuilder);
+		search.setQuery(queryBuilder);
 		//		search.setQuery(query).setPostFilter(query).addAggregation(null);
 		//
 
 		return search;
+	}
+
+	/**
+	 * 获取时间聚合查询结果
+	 * @param response
+	 * @param queryParams
+	 * @return
+	 */
+	private List<Histogram.Bucket> transDateAgg(SearchResponse response, QueryParams queryParams) {
+		List<Histogram.Bucket> agg = new ArrayList<>();
+
+		if (queryParams.getDateHistAgg() != "") {
+			Histogram histogram = response.getAggregations().get(queryParams.getDateHistAgg());
+			@SuppressWarnings("unchecked")
+			List<Histogram.Bucket> buckets = (List<Histogram.Bucket>) histogram.getBuckets();
+			for (Histogram.Bucket bucket : buckets) {
+				agg.add(bucket);
+			}
+		}
+		return agg;
 	}
 
 	/**
@@ -171,24 +197,18 @@ public class ESQueryCore {
 	 * @param queryParams
 	 * @return
 	 */
-	private List<SimpleAggInfo> transAgg(SearchResponse response, QueryParams queryParams) {
+	private List<SimpleAggInfo> transTermAgg(SearchResponse response, QueryParams queryParams) {
 		List<SimpleAggInfo> agg = new ArrayList<>();
 
-		if (response.getAggregations() != null) {
-			//			Terms terms = response.getAggregations().get(queryParams.getAggregation());
-			//			List<Terms.Bucket> buckets = terms.getBuckets();
+		if (queryParams.getTermAgg() != "") {
+			Terms terms = response.getAggregations().get(queryParams.getTermAgg());
+			List<Terms.Bucket> buckets = terms.getBuckets();
 			SimpleAggInfo aggInfo = new SimpleAggInfo();
 			HashMap<String, Long> t = new LinkedHashMap<>();
-			//			for (Terms.Bucket bucket : buckets) {
-			//				t.put(bucket.getKeyAsString(), bucket.getDocCount());
-			//
-			//			}
-			Histogram histogram = response.getAggregations().get("index_time");
-			List<Histogram.Bucket> buckets = (List<Histogram.Bucket>) histogram.getBuckets();
-			for (Histogram.Bucket bucket : buckets) {
+			for (Terms.Bucket bucket : buckets) {
 				t.put(bucket.getKeyAsString(), bucket.getDocCount());
 			}
-			aggInfo.setName(queryParams.getAggregation());
+			aggInfo.setName(queryParams.getDateHistAgg());
 			aggInfo.setValues(t);
 			agg.add(aggInfo);
 		}
@@ -211,7 +231,6 @@ public class ESQueryCore {
 		Map<String, Object> fields = new LinkedHashMap<>();
 		for (SearchHit sHit : searchHists) {
 
-			sHit.getId();
 			String json = sHit.getSourceAsString();
 			BrowsingRecord browsingRecord = JsonUtils.getObject(json, BrowsingRecord.class);
 

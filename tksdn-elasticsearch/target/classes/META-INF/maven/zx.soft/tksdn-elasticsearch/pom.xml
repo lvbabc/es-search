@@ -17,22 +17,11 @@
 			<groupId>zx.soft</groupId>
 			<artifactId>common-utils</artifactId>
 			<version>2.0.0</version>
-			<!--  
-			<exclusions>
-				<exclusion>
-					<groupId>fr.inria.powerapi.sensor</groupId>
-					<artifactId>sensor-cpu-sigar</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.restlet.jse</groupId>
-					<artifactId>org.restlet.ext.jackson</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.github.jnr</groupId>
-					<artifactId>jnr-posix</artifactId>
-				</exclusion>
-			</exclusions>
-		-->
+		</dependency>
+		<!-- redis包 -->
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
 		</dependency>
 		<!-- es包 -->
 		<dependency>
@@ -40,7 +29,7 @@
 			<artifactId>elasticsearch</artifactId>
 			<version>2.2.0</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>tksdn-common</artifactId>
@@ -76,6 +65,23 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>logback.xml</exclude>
+						<exclude>data_db.properties</exclude>
+						<exclude>oracle_db.properties</exclude>
+						<exclude>cache-config.properties</exclude>
+						<exclude>elasticsearch.properties</exclude>
+						<exclude>hbase.properties</exclude>
+						<exclude>utils.properties</exclude>
+						<exclude>riak.properties</exclude>
+						<exclude>stopwords_zh.txt</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
