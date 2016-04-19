@@ -11,7 +11,9 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.text.Text;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchException;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -34,6 +36,7 @@ import zx.soft.utils.regex.RegexUtils;
 /**
  * ES搜索类
  * 因ES搜索分类较多，暂时不进行合并，后期再合并
+ * 已进行简单合并，后期还需修改
  * @author lvbing
  *
  */
@@ -56,9 +59,9 @@ public class ESQueryCore {
 	/**
 	 * 查询具体数据
 	 */
-	public QueryResult queryData(QueryParams queryParams, SearchRequestBuilder search) {
+	public QueryResult queryData(QueryParams queryParams, boolean isDefault) {
 
-		//		SearchRequestBuilder search = getSearcher(queryParams);
+		SearchRequestBuilder search = getSearcher(queryParams, isDefault);
 		SearchResponse response = null;
 		try {
 			response = search.setExplain(true).execute().actionGet();
@@ -90,12 +93,11 @@ public class ESQueryCore {
 	}
 
 	/**
-	 * 构建SearchRequestBuilder,将参数组合
+	 * 构建SearchRequestBuilder,组合参数
 	 */
-	public SearchRequestBuilder getSearcher(QueryParams queryParams, QueryBuilder queryBuilder) {
+	public SearchRequestBuilder getSearcher(QueryParams queryParams, boolean isDefault) {
 
 		SearchRequestBuilder search = null;
-		QueryBuilder query = null;
 		if (queryParams.getIndexName() != "") {
 			search = client.prepareSearch(queryParams.getIndexName());
 		}
@@ -142,9 +144,9 @@ public class ESQueryCore {
 			search.setHighlighterPreTags("<span style=\"color:red\">").setHighlighterPostTags("</span>")
 					.setHighlighterFragmentSize(10000);
 		}
-		if (queryParams.getTermAgg() != "") {
+		if (queryParams.getTermsAgg() != "") {
 			search.addAggregation(
-					AggregationBuilders.terms(queryParams.getTermAgg()).field(queryParams.getTermAgg()).size(15));
+					AggregationBuilders.terms(queryParams.getTermsAgg()).field(queryParams.getTermsAgg()).size(15));
 		}
 		if (queryParams.getDateHistAgg() != "") {
 			DateHistogramInterval interval = new DateHistogramInterval(queryParams.getDateInterval());
@@ -152,23 +154,50 @@ public class ESQueryCore {
 					AggregationBuilders.dateHistogram(queryParams.getDateHistAgg()).field(queryParams.getDateHistAgg())
 							.interval(interval).minDocCount(0).format("yyy-MM-dd HH:mm:ss"));
 		}
-		//
-		//
-		//
 		/**
 		 * 如何选择QueryBuilder 待定
 		 */
-		//		QueryBuilder queryStringQuery = QueryBuilders.termQuery("content", queryParams.getQ());
-		//		QueryBuilder bool = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", queryParams.getQ()))
-		//				.should(QueryBuilders.termQuery("keyword", queryParams.getQ()));
+		QueryBuilder queryBuilder = getQueryBuilder(queryParams, isDefault);
 
-		//				.operator(MatchQueryBuilder.Operator.AND);
-		//		search.setPostFilter(queryBuilder);
 		search.setQuery(queryBuilder);
-		//		search.setQuery(query).setPostFilter(query).addAggregation(null);
-		//
 
 		return search;
+	}
+
+	/**
+	 * 构建QueryBuilder
+	 * @param queryParams
+	 * @return
+	 */
+	private QueryBuilder getQueryBuilder(QueryParams queryParams, boolean isDefault) {
+
+		QueryBuilder queryBuilder = null;
+		//默认查询,返回全部数据
+		if (queryParams.getQ() == "*" && isDefault) {
+			queryBuilder = QueryBuilders.matchAllQuery();
+		}
+		//默认查询,返回指定数据
+		if (queryParams.getQ() != "*" && isDefault) {
+			//默认字段待定
+			queryBuilder = QueryBuilders.queryStringQuery(queryParams.getQ()).field("");
+		}
+		if (queryParams.getRangeFiled() != "" && (!isDefault)) {
+			queryBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled()).from(queryParams.getRangeStart())
+					.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss").timeZone(queryParams.getTimeZone());
+		}
+		if (queryParams.getbQ() != "" && (!isDefault)) {
+			Map<String, String> test = new LinkedHashMap<>();
+			BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
+			for (Map.Entry<String, String> entry : test.entrySet()) {
+				QueryBuilder termBuildFirst = QueryBuilders.termQuery("", entry.getKey());
+				QueryBuilder termBuildSecond = QueryBuilders.termQuery("", entry.getValue());
+
+				BoolQueryBuilder builder = QueryBuilders.boolQuery().must(termBuildFirst).must(termBuildSecond);
+				boolBuilder.should(builder);
+			}
+			queryBuilder = boolBuilder;
+		}
+		return queryBuilder;
 	}
 
 	/**
@@ -200,8 +229,8 @@ public class ESQueryCore {
 	private List<SimpleAggInfo> transTermAgg(SearchResponse response, QueryParams queryParams) {
 		List<SimpleAggInfo> agg = new ArrayList<>();
 
-		if (queryParams.getTermAgg() != "") {
-			Terms terms = response.getAggregations().get(queryParams.getTermAgg());
+		if (queryParams.getTermsAgg() != "") {
+			Terms terms = response.getAggregations().get(queryParams.getTermsAgg());
 			List<Terms.Bucket> buckets = terms.getBuckets();
 			SimpleAggInfo aggInfo = new SimpleAggInfo();
 			HashMap<String, Long> t = new LinkedHashMap<>();

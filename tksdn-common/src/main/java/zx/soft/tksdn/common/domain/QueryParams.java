@@ -10,27 +10,40 @@ import java.util.Arrays;
  */
 public class QueryParams implements Cloneable {
 
+	//索引参数
 	private String indexName = "tekuan";
 	private String indexType = "record";
 	private String preferenceType = "";
 	private String searchType = "";
 	private String[] includes = null;
-	private String q = "";//在所有字段中搜索
 
-	private String termAgg = "";
-	private String dateHistAgg = "";
-	private String dateInterval = null;
-	private String term = "";
-	private String value = "";
+	//默认查询,参数中不带字段,字段为默认设置
+	private String q = "*";
 
-	private String hlfl = null;;
-	//范围查询通用字段
+	//范围查询--rangeQuery参数
 	private String rangeFiled = "";
 	private String rangeStart = "";
 	private String rangeEnd = "";
-	private String timeZone = "";
+	private String timeZone = "+08:00";
+
+	//bool 查询 boolQuery --未确定具体形式,待以后更改
+	private String bQ = "";
+
+	//聚合参数   termsAgg,dateHistAgg的值为字段名
+	//termAgg用于普通数据聚合,dateHistAgg用于日期数据聚合,dateInterval后要加单位,如1d(1天),3M(3个月)
+	private String termsAgg = "";
+	private String dateHistAgg = "";
+	private String dateInterval = null;
+
+	private String term = "";
+	private String value = "";
+
+	//高亮
+	private String hlfl = null;;
 
 	private String sort = "";
+
+	//分页
 	private int from = 0;
 	private int size = 10;
 
@@ -54,8 +67,8 @@ public class QueryParams implements Cloneable {
 	@Override
 	public String toString() {
 		return "QueryParams [indexName=" + indexName + ", indexType=" + indexType + ", preferenceType=" + preferenceType
-				+ ", searchType=" + searchType + ", includes=" + Arrays.toString(includes) + ", q=" + q + ", termAgg="
-				+ termAgg + ", dateHistAgg=" + dateHistAgg + ", term=" + term + ", value=" + value + ", hlfl=" + hlfl
+				+ ", searchType=" + searchType + ", includes=" + Arrays.toString(includes) + ", q=" + q + ", termsAgg="
+				+ termsAgg + ", dateHistAgg=" + dateHistAgg + ", term=" + term + ", value=" + value + ", hlfl=" + hlfl
 				+ ", rangeFiled=" + rangeFiled + ", rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd + ", timeZone="
 				+ timeZone + ", sort=" + sort + ", from=" + from + ", size=" + size + "]";
 	}
@@ -188,12 +201,12 @@ public class QueryParams implements Cloneable {
 		this.value = value;
 	}
 
-	public String getTermAgg() {
-		return termAgg;
+	public String getTermsAgg() {
+		return termsAgg;
 	}
 
-	public void setTermAgg(String termAgg) {
-		this.termAgg = termAgg;
+	public void setTermsAgg(String termsAgg) {
+		this.termsAgg = termsAgg;
 	}
 
 	public String getDateHistAgg() {
@@ -210,6 +223,14 @@ public class QueryParams implements Cloneable {
 
 	public void setDateInterval(String dateInterval) {
 		this.dateInterval = dateInterval;
+	}
+
+	public String getbQ() {
+		return bQ;
+	}
+
+	public void setbQ(String bQ) {
+		this.bQ = bQ;
 	}
 
 }
