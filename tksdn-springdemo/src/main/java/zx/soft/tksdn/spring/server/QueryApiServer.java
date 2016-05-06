@@ -14,11 +14,6 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
-/**
- *
- * @author lb
- *
- */
 public class QueryApiServer {
 
 	private static final Logger logger = LoggerFactory.getLogger(QueryApiServer.class);

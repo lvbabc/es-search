@@ -1,5 +1,8 @@
 package zx.soft.tksdn.spring.demo;
 
+import java.util.Map;
+
+import org.elasticsearch.action.admin.cluster.stats.ClusterStatsResponse;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -7,47 +10,34 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import zx.soft.tksdn.common.domain.QueryParams;
-import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.query.ESQueryCore;
+import zx.soft.utils.log.LogbackUtil;
 
 /**
- * 测试ES各种功能
+ * 记录ES功能代码
  * @author lb
  *
  */
 public class MainTest {
+	private static Logger logger = LoggerFactory.getLogger(ESQueryCore.class);
 
 	/**
 	 * 挑选QueryBuilder
 	 */
 	private void selectQueryBuilders(QueryParams queryParams) {
 		/**
-		 * 全部查询
-		 */
-		QueryBuilder matchAllQuery = QueryBuilders.matchAllQuery();
-		/**
 		 * 不区分字段查询
 		 */
 		QueryBuilder queryStringQuery = QueryBuilders.queryStringQuery(queryParams.getQ())
 				.defaultOperator(QueryStringQueryBuilder.Operator.AND);
 		/**
-		 * 范围查询
-		 */
-		QueryBuilder rangeQuery = QueryBuilders.rangeQuery(queryParams.getRangeFiled())
-				.from(queryParams.getRangeStart()).to(queryParams.getRangeEnd()).timeZone(queryParams.getTimeZone());
-		/**
 		 * 按字段过滤
 		 */
 		QueryBuilder termQuery = QueryBuilders.termQuery(queryParams.getTerm(), queryParams.getValue());
-		/**
-		 * 嵌套查询
-		 */
-		QueryBuilder boolQuery = QueryBuilders.boolQuery().must(QueryBuilders.matchQuery("", "")).must(null)
-				.mustNot(null).should(null);
 		/**
 		 * 基础查询
 		 */
@@ -79,24 +69,64 @@ public class MainTest {
 	}
 
 	/**
-	 * agg
-	 * test
+	 * 返回节点信息（详细信息）
+	 * ClusterStatsResponse.getStatus() 返回节点状态(green yellow red)
+	 * ClusterStatsResponse.getClusterNameAsString() 返回节点名称
+	 * ClusterStatsResponse.getIndicesStats() 返回节点中所有索引的信息
+	 *
+	 * @return
 	 */
-	public QueryResult aggTest(QueryParams queryParams) {
+	public ClusterStatsResponse getClusterInfo() {
+		Client client = null;
+		return client.admin().cluster().prepareClusterStats().execute().actionGet();
+	}
 
-		QueryBuilder matchAllQuery = QueryBuilders.termQuery("content", queryParams.getQ());
-		SearchRequestBuilder search = ESQueryCore.getInstance().getSearcher(queryParams, matchAllQuery)
-				.addAggregation(AggregationBuilders.terms("by_country").field("src_ip"));
-		//						.subAggregation(AggregationBuilders.dateHistogram("by_year").field("dateOfBirth")
-		//								.interval((DateHistogramInterval.YEAR))
-		//								.subAggregation(AggregationBuilders.avg("avg_children").field("children"))));
+	/**
+	 *  得到一个指定索引的source
+	 *
+	 *  @param indexName
+	 *  @param indexType
+	 *  @param indexId
+	 *
+	 *  @return
+	 */
+	public Map<String, Object> getElasticSearchSource(String indexName, String indexType, String indexId) {
+		Client client = null;
+		return client.prepareGet(indexName, indexType, indexId).execute().actionGet().getSource();
+	}
 
-		DateRangeBuilder agg = AggregationBuilders.dateRange("date");
-		agg.field("index_time");
+	/**
+	 *  删除一个指定索引的source
+	 *
+	 *  @param indexName
+	 *  @param indexType
+	 *  @param indexId
+	 *
+	 *  @return
+	 */
+	public boolean deleteIndex(String indexName, String indexType, String indexId) {
+		boolean isSucceed = true;
+		Client client = null;
+		try {
+			client.prepareDelete(indexName, indexType, indexId).execute().actionGet();
+		} catch (Exception e) {
+			isSucceed = false;
+			logger.error(LogbackUtil.expection2Str(e));
+		}
+		return isSucceed;
+	}
 
-
-
-
-		return ESQueryCore.getInstance().queryData(queryParams, search);
+	/**
+	 * 是否有分片信息错误
+	 *
+	 * @param response
+	 * @return
+	 */
+	public boolean isHasShardFailed(SearchResponse response) {
+		boolean isFailed = false;
+		if (response != null) {
+			isFailed = response.getFailedShards() > 0;
+		}
+		return isFailed;
 	}
 }

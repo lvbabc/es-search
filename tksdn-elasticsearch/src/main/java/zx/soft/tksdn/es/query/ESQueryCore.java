@@ -1,16 +1,21 @@
 package zx.soft.tksdn.es.query;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
-import org.elasticsearch.action.admin.cluster.stats.ClusterStatsResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.text.Text;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -29,6 +34,7 @@ import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.common.index.BrowsingRecord;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.domain.SimpleAggInfo;
+import zx.soft.utils.config.ConfigUtil;
 import zx.soft.utils.json.JsonUtils;
 import zx.soft.utils.log.LogbackUtil;
 import zx.soft.utils.regex.RegexUtils;
@@ -44,12 +50,34 @@ public class ESQueryCore {
 
 	private static Logger logger = LoggerFactory.getLogger(ESQueryCore.class);
 
-	private final Client client;
+	private final TransportClient client;
 
 	private static ESQueryCore core = new ESQueryCore();
 
 	private ESQueryCore() {
-		client = ESTransportClient.getClient();
+		//		client = ESTransportClient.getClient();
+		//		if (client == null) {
+		Properties prop = ConfigUtil.getProps("elasticsearch.properties");
+		Settings settings = Settings.settingsBuilder().put("cluster.name", prop.getProperty("cluster.name"))
+				.put("client.transport.ping_timeout", prop.getProperty("client.transport.ping_timeout"))
+				.put("client.transport.nodes_sampler_interval",
+						prop.getProperty("client.transport.nodes_sampler_interval"))
+				.build();
+		client = TransportClient.builder().settings(settings).build();
+		try {
+			String host = prop.getProperty("es.ip");
+			List<String> hosts = Arrays.asList(host.split(","));
+			if (hosts.size() > 0) {
+				for (int i = 0; i < hosts.size(); i++) {
+					client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hosts.get(i)),
+							Integer.parseInt(prop.getProperty("es.port"))));
+				}
+			}
+
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		//		}
 	}
 
 	public static ESQueryCore getInstance() {
@@ -62,6 +90,8 @@ public class ESQueryCore {
 	public QueryResult queryData(QueryParams queryParams, boolean isDefault) {
 
 		SearchRequestBuilder search = getSearcher(queryParams, isDefault);
+		logger.info(search.toString());
+
 		SearchResponse response = null;
 		try {
 			response = search.setExplain(true).execute().actionGet();
@@ -88,7 +118,7 @@ public class ESQueryCore {
 		//		result.setHighlighting(highlighting);
 		logger.info("numFound=" + result.getNumFound());
 		logger.info("QTime=" + result.getQTime());
-
+		//		close();
 		return result;
 	}
 
@@ -179,13 +209,15 @@ public class ESQueryCore {
 		//默认查询,返回指定数据
 		if (queryParams.getQ() != "*" && isDefault) {
 			//默认字段待定
-			queryBuilder = QueryBuilders.queryStringQuery(queryParams.getQ()).field("");
+			queryBuilder = QueryBuilders.queryStringQuery(queryParams.getQ());
 		}
-		if (queryParams.getRangeFiled() != "" && (!isDefault)) {
+		//范围查询,目前只用查询日期
+		if (queryParams.getRangeFiled() != "*" && (!isDefault)) {
 			queryBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled()).from(queryParams.getRangeStart())
 					.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss").timeZone(queryParams.getTimeZone());
 		}
-		if (queryParams.getbQ() != "" && (!isDefault)) {
+		//bool查询,对查询进行嵌套处理
+		if (queryParams.getbQ() != "*" && (!isDefault)) {
 			Map<String, String> test = new LinkedHashMap<>();
 			BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
 			for (Map.Entry<String, String> entry : test.entrySet()) {
@@ -237,7 +269,7 @@ public class ESQueryCore {
 			for (Terms.Bucket bucket : buckets) {
 				t.put(bucket.getKeyAsString(), bucket.getDocCount());
 			}
-			aggInfo.setName(queryParams.getDateHistAgg());
+			aggInfo.setName(queryParams.getTermsAgg());
 			aggInfo.setValues(t);
 			agg.add(aggInfo);
 		}
@@ -245,7 +277,7 @@ public class ESQueryCore {
 	}
 
 	/**
-	 * 获取ES文档
+	 * 获取ES文档 把高亮加入到文档中方便调用
 	 * @param searchHists
 	 * @param queryParams
 	 * @return
@@ -281,65 +313,6 @@ public class ESQueryCore {
 			sHits.add(browsingRecord);
 		}
 		return sHits;
-	}
-
-	/**
-	 * 返回节点信息（详细信息）
-	 * ClusterStatsResponse.getStatus() 返回节点状态(green yellow red)
-	 * ClusterStatsResponse.getClusterNameAsString() 返回节点名称
-	 * ClusterStatsResponse.getIndicesStats() 返回节点中所有索引的信息
-	 *
-	 * @return
-	 */
-	public ClusterStatsResponse getClusterInfo() {
-		return client.admin().cluster().prepareClusterStats().execute().actionGet();
-	}
-
-	/**
-	 *  得到一个指定索引的source
-	 *
-	 *  @param indexName
-	 *  @param indexType
-	 *  @param indexId
-	 *
-	 *  @return
-	 */
-	public Map<String, Object> getElasticSearchSource(String indexName, String indexType, String indexId) {
-		return client.prepareGet(indexName, indexType, indexId).execute().actionGet().getSource();
-	}
-
-	/**
-	 *  删除一个指定索引的source
-	 *
-	 *  @param indexName
-	 *  @param indexType
-	 *  @param indexId
-	 *
-	 *  @return
-	 */
-	public boolean deleteIndex(String indexName, String indexType, String indexId) {
-		boolean isSucceed = true;
-		try {
-			client.prepareDelete(indexName, indexType, indexId).execute().actionGet();
-		} catch (Exception e) {
-			isSucceed = false;
-			logger.error(LogbackUtil.expection2Str(e));
-		}
-		return isSucceed;
-	}
-
-	/**
-	 * 是否有分片信息错误
-	 *
-	 * @param response
-	 * @return
-	 */
-	public boolean isHasShardFailed(SearchResponse response) {
-		boolean isFailed = false;
-		if (response != null) {
-			isFailed = response.getFailedShards() > 0;
-		}
-		return isFailed;
 	}
 
 	public void close() {

@@ -63,17 +63,17 @@ public class ESBulkProcessor {
 				.build();
 	}
 
-	public boolean doIndex(String index, String type, List<RecordInfo> objects) {
+	public boolean doIndex(String index, String type, List<RecordInfo> RecordInfos) {
 		//		ESMapping mapping = new ESMapping(this.client);
 		//		if (!mapping.existType(index, type)) {
 		//			logger.error("不存在对应的index和type");
 		//			return false;
 		//		}
 		try {
-			if (objects != null) {
-				for (Object object : objects) {
-					IndexRequest indexRequest = new IndexRequest(index, type)
-							.source(JsonUtils.toJsonWithoutPretty(object));
+			if (RecordInfos != null) {
+				for (RecordInfo recordInfo : RecordInfos) {
+					IndexRequest indexRequest = new IndexRequest(index, type, recordInfo.getId())
+							.source(JsonUtils.toJsonWithoutPretty(recordInfo));
 					bulkProcessor.add(indexRequest);
 				}
 			}

@@ -18,9 +18,9 @@ public class QueryService {
 
 	public QueryResult queryStringQuery(QueryParams queryParams) {
 
-		String q = queryParams.getQ().toUpperCase().replaceAll("(AND|OR|NOT)", " " + "$0" + " ")
-				.replaceAll("(\\+|-|\\|)", " " + "$0");
-		System.out.println(q);
+		//		String q = queryParams.getQ().toUpperCase().replaceAll("(AND|OR|NOT)", " " + "$0" + " ")
+		//				.replaceAll("(\\+|-|\\|)", " " + "$0");
+		//		System.out.println(q);
 
 		return ESQueryCore.getInstance().queryData(queryParams, true);
 

@@ -63,8 +63,6 @@ public class ImportRedisToES {
 			if (records.size() > 0 && recordInfos.size() > 0) {
 				result = new ArrayList<>();
 				for (RecordInfo tmp : recordInfos) {
-					// 如果不是微博信息，则更新首次监测时间
-					if (tmp.getPlatform() != 3) {
 						// 从Redis中获取首次检测时间
 						firstTime = redisCacheExpired.getRecords(tmp.getId());
 						if (firstTime != null) {
@@ -76,12 +74,11 @@ public class ImportRedisToES {
 								logger.info("id:{} firsttime is null.", tmp.getId());
 							}
 						}
-					}
 					result.add(tmp);
 				}
 				try {
 					//批量索引数据到ES
-					processor.doIndex("", "", result);
+					processor.doIndex("tekuan", "record", result);
 				} catch (final Exception e) {
 					logger.error("Exception:{}", LogbackUtil.expection2Str(e));
 					// 索引提交失败，还需要将元数据写回Redis

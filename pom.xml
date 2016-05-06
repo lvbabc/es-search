@@ -16,13 +16,14 @@
 		<module>tksdn-elasticsearch</module>
 		<module>tksdn-common</module>
 		<module>tksdn-springdemo</module>
+		<module>tksdn-rediscache</module>
 	</modules>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch</artifactId>
-			<version>2.2.0</version><!--$NO-MVN-MAN-VER$-->
+			<version>2.3.2</version><!--$NO-MVN-MAN-VER$-->
 		</dependency>
 		
 		<dependency>
