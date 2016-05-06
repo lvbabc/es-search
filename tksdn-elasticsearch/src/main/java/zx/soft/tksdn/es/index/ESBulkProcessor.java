@@ -1,5 +1,7 @@
 package zx.soft.tksdn.es.index;
 
+import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -13,12 +15,13 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import zx.soft.tksdn.common.index.RecordInfo;
 import zx.soft.utils.config.ConfigUtil;
-import zx.soft.utils.json.JsonUtils;
 import zx.soft.utils.log.LogbackUtil;
 
 /**
@@ -63,17 +66,16 @@ public class ESBulkProcessor {
 				.build();
 	}
 
-	public boolean doIndex(String index, String type, List<RecordInfo> RecordInfos) {
-		//		ESMapping mapping = new ESMapping(this.client);
-		//		if (!mapping.existType(index, type)) {
-		//			logger.error("不存在对应的index和type");
-		//			return false;
-		//		}
+	public void doIndex(String index, String type, List<RecordInfo> recordInfos) {
+
+		if (recordInfos.size() == 0) {
+			return;
+		}
 		try {
-			if (RecordInfos != null) {
-				for (RecordInfo recordInfo : RecordInfos) {
+			if (recordInfos != null) {
+				for (RecordInfo recordInfo : recordInfos) {
 					IndexRequest indexRequest = new IndexRequest(index, type, recordInfo.getId())
-							.source(JsonUtils.toJsonWithoutPretty(recordInfo));
+							.source(getTksdnDoc(recordInfo));
 					bulkProcessor.add(indexRequest);
 				}
 			}
@@ -81,25 +83,42 @@ public class ESBulkProcessor {
 		} catch (Exception e) {
 			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
 		}
-		return true;
 	}
 
-	public boolean doIndex(String index, String type, RecordInfo object) {
-		//		ESMapping mapping = new ESMapping(this.client);
-		//		if (!mapping.existType(index, type)) {
-		//			logger.error("不存在对应的index和type");
-		//			return false;
-		//		}
-		IndexRequest indexRequest = new IndexRequest(index, type).source(JsonUtils.toJsonWithoutPretty(object));
-		bulkProcessor.add(indexRequest);
-		return true;
+	/**
+	 * 每次更改字段的时候，这里也需要更改。
+	 */
+	public static XContentBuilder getTksdnDoc(RecordInfo record) {
+
+		if (record.getId() == null || record.getId() == "" || record.getId().length() == 0) {
+			logger.error("Record's id is null,{}", record);
+			return null;
+		}
+		XContentBuilder builder = null;
+		try {
+			builder = XContentFactory.jsonBuilder()
+					.startObject()
+					.field("username", record.getUsername().trim())
+					.field("title",record.getTitle().trim())
+					.field("url",record.getUrl().trim())
+					.field("content",record.getContent().trim())
+					.field("timestamp",new Date(record.getTimestamp()))
+					.field("ip",record.getIp())
+					.field("first_time",new Date(record.getFirst_time()))
+					.field("card_num",record.getCard_num())
+					.field("identity_id",record.getIdentify_id())
+					.endObject();
+		} catch (IOException e) {
+			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
+		}
+		return builder;
 	}
 
 	public void closeESBulkProcessor() {
 		try {
 			bulkProcessor.awaitClose(10, TimeUnit.MINUTES);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
 		}
 	}
 }

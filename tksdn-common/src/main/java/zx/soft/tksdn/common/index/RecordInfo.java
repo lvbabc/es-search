@@ -2,7 +2,7 @@ package zx.soft.tksdn.common.index;
 
 /**
  * POST的数据类，注意：id需要md5，时间都是10位的数字时间戳，精确到秒的
- * 
+ *
  * @author wanggang
  *
  */
@@ -53,23 +53,25 @@ public class RecordInfo {
 	private int location_code;
 	private int province_code;
 	private int city_code;
+	private long card_num ;
 
 	@Override
 	public String toString() {
-		return "Record:{id=" + id + ",platform=" + platform + ",mid=" + mid + ",username=" + username + ",nickname="
-				+ nickname + ",original_id=" + original_id + ",original_uid=" + original_uid + ",original_name="
-				+ original_name + ",original_title=" + original_title + ",original_url=" + original_url + ",url=" + url
-				+ ",home_url=" + home_url + ",title=" + title + ",type=" + type + ",isharmful=" + isharmful
-				+ ",content=" + content + ",comment_count=" + comment_count + ",read_count=" + read_count
-				+ ",favorite_count=" + favorite_count + ",attitude_count=" + attitude_count + ",repost_count="
-				+ repost_count + ",video_url=" + video_url + ",pic_url=" + pic_url + ",voice_url=" + voice_url
-				+ ",timestamp=" + timestamp + ",source_id=" + source_id + ",lasttime=" + lasttime + ",server_id="
-				+ server_id + ",identify_id=" + identify_id + ",identify_md5=" + identify_md5 + ",keyword=" + keyword
-				+ ",first_time=" + first_time + ",update_time=" + update_time + ",ip=" + ip + ",location=" + location
-				+ ",geo=" + geo + ",receive_addr=" + receive_addr + ",append_addr=" + append_addr + ",send_addr="
-				+ send_addr + ",source_name=" + source_name + ",country_code=" + country_code + ",location_code="
-				+ location_code + ",province_code=" + province_code + ",city_code=" + city_code + ",source_type="
-				+ source_type + "}";
+		return "RecordInfo [id=" + id + ", platform=" + platform + ", mid=" + mid + ", username=" + username
+				+ ", nickname=" + nickname + ", original_id=" + original_id + ", original_uid=" + original_uid
+				+ ", original_name=" + original_name + ", original_title=" + original_title + ", original_url="
+				+ original_url + ", url=" + url + ", home_url=" + home_url + ", title=" + title + ", type=" + type
+				+ ", isharmful=" + isharmful + ", content=" + content + ", comment_count=" + comment_count
+				+ ", read_count=" + read_count + ", favorite_count=" + favorite_count + ", attitude_count="
+				+ attitude_count + ", repost_count=" + repost_count + ", video_url=" + video_url + ", pic_url="
+				+ pic_url + ", voice_url=" + voice_url + ", timestamp=" + timestamp + ", source_id=" + source_id
+				+ ", lasttime=" + lasttime + ", server_id=" + server_id + ", identify_id=" + identify_id
+				+ ", identify_md5=" + identify_md5 + ", keyword=" + keyword + ", first_time=" + first_time
+				+ ", update_time=" + update_time + ", ip=" + ip + ", location=" + location + ", geo=" + geo
+				+ ", receive_addr=" + receive_addr + ", append_addr=" + append_addr + ", send_addr=" + send_addr
+				+ ", source_name=" + source_name + ", source_type=" + source_type + ", country_code=" + country_code
+				+ ", location_code=" + location_code + ", province_code=" + province_code + ", city_code=" + city_code
+				+ ", card_num=" + card_num + "]";
 	}
 
 	public RecordInfo() {
@@ -434,6 +436,14 @@ public class RecordInfo {
 
 	public void setCity_code(int city_code) {
 		this.city_code = city_code;
+	}
+
+	public long getCard_num() {
+		return card_num;
+	}
+
+	public void setCard_num(long cardnum) {
+		this.card_num = cardnum;
 	}
 
 }

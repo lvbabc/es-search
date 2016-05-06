@@ -1,5 +1,6 @@
 package zx.soft.tksdn.es.driver;
 
+import zx.soft.tksdn.es.index.ImportRedisToES;
 import zx.soft.utils.driver.ProgramDriver;
 
 /**
@@ -18,7 +19,7 @@ public class TksdnESDriver {
 		int exitCode = -1;
 		ProgramDriver pgd = new ProgramDriver();
 		try {
-			//			pgd.addClass("oracleToRedis", OracleToRedis.class, "将站点数据定时导入Redis中（默认是每小时）");
+			pgd.addClass("importRedisToES", ImportRedisToES.class, "将redis数据导入ES（默认是每小时）");
 			pgd.driver(args);
 			// Success
 			exitCode = 0;
