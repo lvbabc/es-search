@@ -15,7 +15,7 @@
 	<modules>
 		<module>tksdn-elasticsearch</module>
 		<module>tksdn-common</module>
-		<module>tksdn-springdemo</module>
+		<module>tksdn-web</module>
 		<module>tksdn-rediscache</module>
 	</modules>
 

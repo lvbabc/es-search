@@ -111,9 +111,9 @@ public class ESQueryCore {
 		result.setDateAgg(transDateAgg(response, queryParams));
 		result.setQTime(response.getTookInMillis());
 		result.setNumFound(response.getHits().getTotalHits());
-		if (hits.getHits().length != 0) {
-			result.setSort(hits.getHits()[0].getSortValues());
-		}
+//		if (hits.getHits().length != 0) {
+//			result.setSort(hits.getHits()[0].getSortValues());
+//		}
 		result.setSearchHit(transSearchHit(searchHists, queryParams));
 		//		result.setHighlighting(highlighting);
 		logger.info("numFound=" + result.getNumFound());

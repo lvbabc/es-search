@@ -15,7 +15,6 @@ import zx.soft.tksdn.common.index.BrowsingRecord;
  */
 public class QueryResult {
 
-	// 多线程的标志 added by donglei
 	private String tag;
 
 	private long numFound;
