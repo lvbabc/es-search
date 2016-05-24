@@ -7,7 +7,7 @@
 		<artifactId>tksdn-search</artifactId>
 		<version>1.0.0</version>
 	</parent>
-	<artifactId>tksdn-springdemo</artifactId>
+	<artifactId>tksdn-web</artifactId>
 	<name>spring mvc demo</name>
 
 	<dependencies>

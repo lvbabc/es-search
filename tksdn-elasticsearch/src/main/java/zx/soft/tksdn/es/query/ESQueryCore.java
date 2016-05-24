@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.elasticsearch.action.search.MultiSearchRequestBuilder;
+import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
@@ -30,6 +32,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import zx.soft.tksdn.common.domain.KeywordsCount;
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.common.index.BrowsingRecord;
 import zx.soft.tksdn.es.domain.QueryResult;
@@ -313,6 +316,36 @@ public class ESQueryCore {
 			sHits.add(browsingRecord);
 		}
 		return sHits;
+	}
+
+	/*
+	 * 获取关键词数量
+	 */
+	public List<KeywordsCount> queryKeywords(List<String> keywords ){
+		MultiSearchRequestBuilder mBuilder=client.prepareMultiSearch();
+
+		List<KeywordsCount> kCounts = new ArrayList<>();
+		List<Long> counts = new ArrayList<>();
+
+		for (String string : keywords) {
+			SearchRequestBuilder search = null;
+			QueryBuilder qBuilder = QueryBuilders.multiMatchQuery("\""+string+"\"", "content", "title","keyword");
+			search=client.prepareSearch("tekuan").setTypes("record").setSize(0).setQuery(qBuilder);
+			mBuilder.add(search);
+		}
+		MultiSearchResponse mResponse = mBuilder.execute().actionGet();
+
+		for (MultiSearchResponse.Item item : mResponse.getResponses()) {
+		    SearchResponse response = item.getResponse();
+		    counts.add(response.getHits().getTotalHits());
+		}
+		for (int i=0;i<keywords.size();i++) {
+			KeywordsCount keywordsCount = new KeywordsCount();
+			keywordsCount.setKeyword(keywords.get(i));
+			keywordsCount.setCount(counts.get(keywords.size()-1-i));
+			kCounts.add(keywordsCount);
+		}
+		return kCounts;
 	}
 
 	public void close() {
