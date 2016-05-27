@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import zx.soft.tksdn.common.domain.KeywordsCount;
 import zx.soft.tksdn.common.domain.QueryParams;
-import zx.soft.tksdn.common.index.BrowsingRecord;
+import zx.soft.tksdn.common.index.RecordInfo;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.domain.SimpleAggInfo;
 import zx.soft.utils.config.ConfigUtil;
@@ -93,8 +93,7 @@ public class ESQueryCore {
 	public QueryResult queryData(QueryParams queryParams, boolean isDefault) {
 
 		SearchRequestBuilder search = getSearcher(queryParams, isDefault);
-		logger.info(search.toString());
-
+		//		logger.info(search.toString());
 		SearchResponse response = null;
 		try {
 			response = search.setExplain(true).execute().actionGet();
@@ -114,9 +113,9 @@ public class ESQueryCore {
 		result.setDateAgg(transDateAgg(response, queryParams));
 		result.setQTime(response.getTookInMillis());
 		result.setNumFound(response.getHits().getTotalHits());
-//		if (hits.getHits().length != 0) {
-//			result.setSort(hits.getHits()[0].getSortValues());
-//		}
+		//		if (hits.getHits().length != 0) {
+		//			result.setSort(hits.getHits()[0].getSortValues());
+		//		}
 		result.setSearchHit(transSearchHit(searchHists, queryParams));
 		//		result.setHighlighting(highlighting);
 		logger.info("numFound=" + result.getNumFound());
@@ -232,6 +231,16 @@ public class ESQueryCore {
 			}
 			queryBuilder = boolBuilder;
 		}
+		/**
+		 * 查询单个关键词
+		 */
+		if (queryParams.getQ() != "*" && (!isDefault)) {
+			BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
+			boolBuilder = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", queryParams.getQ()))
+					.should(QueryBuilders.termQuery("title", queryParams.getQ()))
+					.should(QueryBuilders.termQuery("keyword", queryParams.getQ()));
+			queryBuilder = boolBuilder;
+		}
 		return queryBuilder;
 	}
 
@@ -285,18 +294,18 @@ public class ESQueryCore {
 	 * @param queryParams
 	 * @return
 	 */
-	private List<BrowsingRecord> transSearchHit(SearchHit[] searchHists, QueryParams queryParams) {
+	private List<RecordInfo> transSearchHit(SearchHit[] searchHists, QueryParams queryParams) {
 		if (searchHists.length == 0) {
 			return null;
 		}
-		List<BrowsingRecord> sHits = new ArrayList<BrowsingRecord>();
+		List<RecordInfo> sHits = new ArrayList<RecordInfo>();
 		//		List<String> highlighting = new ArrayList<String>();
 
 		Map<String, Object> fields = new LinkedHashMap<>();
 		for (SearchHit sHit : searchHists) {
 
 			String json = sHit.getSourceAsString();
-			BrowsingRecord browsingRecord = JsonUtils.getObject(json, BrowsingRecord.class);
+			RecordInfo browsingRecord = JsonUtils.getObject(json, RecordInfo.class);
 
 			if (queryParams.getHlfl() != "") {
 				for (String field : queryParams.getHlfl().split(",")) {
@@ -312,7 +321,7 @@ public class ESQueryCore {
 					}
 				}
 			}
-			browsingRecord.setId(sHit.getId());
+//			browsingRecord.setId(sHit.getId());
 			sHits.add(browsingRecord);
 		}
 		return sHits;
@@ -321,28 +330,31 @@ public class ESQueryCore {
 	/*
 	 * 获取关键词数量
 	 */
-	public List<KeywordsCount> queryKeywords(List<String> keywords ){
-		MultiSearchRequestBuilder mBuilder=client.prepareMultiSearch();
-
+	public List<KeywordsCount> queryKeywords(List<String> keywords) {
+		MultiSearchRequestBuilder mBuilder = client.prepareMultiSearch();
 		List<KeywordsCount> kCounts = new ArrayList<>();
 		List<Long> counts = new ArrayList<>();
 
 		for (String string : keywords) {
 			SearchRequestBuilder search = null;
-			QueryBuilder qBuilder = QueryBuilders.multiMatchQuery("\""+string+"\"", "content", "title","keyword");
-			search=client.prepareSearch("tekuan").setTypes("record").setSize(0).setQuery(qBuilder);
+
+			QueryBuilder qBuilder = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", string))
+					.should(QueryBuilders.termQuery("title", string))
+					.should(QueryBuilders.termQuery("keyword", string));
+
+			search = client.prepareSearch("tekuan").setTypes("record").setSize(0).setQuery(qBuilder);
 			mBuilder.add(search);
 		}
 		MultiSearchResponse mResponse = mBuilder.execute().actionGet();
 
 		for (MultiSearchResponse.Item item : mResponse.getResponses()) {
-		    SearchResponse response = item.getResponse();
-		    counts.add(response.getHits().getTotalHits());
+			SearchResponse response = item.getResponse();
+			counts.add(response.getHits().getTotalHits());
 		}
-		for (int i=0;i<keywords.size();i++) {
+		for (int i = 0; i < keywords.size(); i++) {
 			KeywordsCount keywordsCount = new KeywordsCount();
 			keywordsCount.setKeyword(keywords.get(i));
-			keywordsCount.setCount(counts.get(keywords.size()-1-i));
+			keywordsCount.setCount(counts.get(i));
 			kCounts.add(keywordsCount);
 		}
 		return kCounts;

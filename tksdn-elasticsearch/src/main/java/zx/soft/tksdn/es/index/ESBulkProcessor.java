@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import zx.soft.tksdn.common.index.RecordInfo;
 import zx.soft.utils.config.ConfigUtil;
+import zx.soft.utils.json.JsonUtils;
 import zx.soft.utils.log.LogbackUtil;
 
 /**
@@ -73,11 +74,31 @@ public class ESBulkProcessor {
 		}
 		try {
 			if (recordInfos != null) {
+				logger.info(Integer.toString(recordInfos.size()));
 				for (RecordInfo recordInfo : recordInfos) {
-					IndexRequest indexRequest = new IndexRequest(index, type, recordInfo.getId())
-							.source(getTksdnDoc(recordInfo));
+					//					IndexRequest indexRequest = new IndexRequest(index, type).source(getTksdnDoc(recordInfo));
+					IndexRequest indexRequest = new IndexRequest(index, type)
+							.source(JsonUtils.toJsonWithoutPretty(recordInfo));
 					bulkProcessor.add(indexRequest);
 				}
+			}
+
+		} catch (Exception e) {
+			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
+		}
+	}
+
+	public void doIndex(String index, String type, RecordInfo recordInfo) {
+
+		//		if (recordInfos.size() == 0) {
+		//			return;
+		//		}
+		try {
+			if (recordInfo != null) {
+//				logger.info(JsonUtils.toJsonWithoutPretty(recordInfo).toString());
+//				logger.info(getTksdnDoc(recordInfo).string());
+				IndexRequest indexRequest = new IndexRequest(index, type,recordInfo.getId()).source(JsonUtils.toJsonWithoutPretty(recordInfo));
+				bulkProcessor.add(indexRequest);
 			}
 
 		} catch (Exception e) {
@@ -98,16 +119,14 @@ public class ESBulkProcessor {
 		try {
 			builder = XContentFactory.jsonBuilder()
 					.startObject()
-					.field("username", record.getUsername().trim())
-					.field("title",record.getTitle().trim())
-					.field("url",record.getUrl().trim())
-					.field("content",record.getContent().trim())
-					.field("timestamp",new Date(record.getTimestamp()))
-					.field("ip",record.getIp())
-					.field("first_time",new Date(record.getFirst_time()))
-					.field("card_num",record.getCard_num())
-					.field("identity_id",record.getIdentify_id())
-					.endObject();
+					.field("keyword", record.getKeyword().trim())
+					.field("title", record.getTitle().trim())
+					.field("url", record.getUrl().trim())
+					.field("content", record.getContent().trim())
+					.field("timestamp", new Date(record.getTimestamp()))
+					.field("lasttime", new Date(record.getLasttime()))
+					.field("ip_addr", record.getIp_addr())
+					.field("type", record.getType()).endObject();
 		} catch (IOException e) {
 			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
 		}

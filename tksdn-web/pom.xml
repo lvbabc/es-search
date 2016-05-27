@@ -11,13 +11,19 @@
 	<name>spring mvc demo</name>
 
 	<dependencies>
-	<!-- es包 -->
+		<!-- es包 -->
 		<dependency>
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch</artifactId>
-			<version>2.3.2</version><!--$NO-MVN-MAN-VER$-->
+			<version>2.3.2</version><!--$NO-MVN-MAN-VER$ -->
 		</dependency>
-		
+		<!--json-lib -->
+		<dependency>
+			<groupId>net.sf.json-lib</groupId>
+			<artifactId>json-lib</artifactId>
+			<version>2.4</version>
+			<classifier>jdk15</classifier>
+		</dependency>
 		<dependency>
 			<groupId>com.hankcs</groupId>
 			<artifactId>hanlp</artifactId>
@@ -116,7 +122,7 @@
 			<artifactId>guava</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>

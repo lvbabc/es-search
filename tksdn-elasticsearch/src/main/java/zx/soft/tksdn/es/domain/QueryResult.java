@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram.Bucket;
 
-import zx.soft.tksdn.common.index.BrowsingRecord;
+import zx.soft.tksdn.common.index.RecordInfo;
 
 /**
  * 查询结果类
@@ -19,17 +19,17 @@ public class QueryResult {
 
 	private long numFound;
 	private long QTime;
-	private List<BrowsingRecord> searchHit = new ArrayList<>();
+	private List<RecordInfo> searchHit = new ArrayList<>();
 	private Object[] sort = null;
 
 	private List<SimpleAggInfo> agg = null;
 	private List<Bucket> dateAgg = null;
 
-	public List<BrowsingRecord> getSearchHit() {
+	public List<RecordInfo> getSearchHit() {
 		return searchHit;
 	}
 
-	public void setSearchHit(List<BrowsingRecord> searchHit) {
+	public void setSearchHit(List<RecordInfo> searchHit) {
 		this.searchHit = searchHit;
 	}
 

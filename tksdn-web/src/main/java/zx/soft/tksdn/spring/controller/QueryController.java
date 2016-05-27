@@ -1,4 +1,4 @@
-package zx.soft.tksdn.spring.controller;
+	package zx.soft.tksdn.spring.controller;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import zx.soft.tksdn.common.domain.QueryParams;
-import zx.soft.tksdn.spring.service.QueryService;
+import zx.soft.tksdn.spring.service.KeywordQueryService;
 
 /**
  *
@@ -26,8 +26,13 @@ public class QueryController {
 	Logger logger = LoggerFactory.getLogger(QueryController.class);
 
 	@Inject
-	private QueryService queryService;
+	private KeywordQueryService queryService;
 
+	/**
+	 * 获取关键词数量
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value = "/keyword", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.CREATED)
 	public @ResponseBody Object queryData(HttpServletRequest request) {
@@ -35,5 +40,23 @@ public class QueryController {
 		queryParams.setQ(request.getParameter("q") == null ? "*" : request.getParameter("q"));
 		logger.info(queryParams.toString());
 		return queryService.queryStringQuery(queryParams);
+	}
+
+	/**
+	 * 返回包含关键词的所有信息
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/data", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.CREATED)
+	public @ResponseBody Object querySingle(HttpServletRequest request) {
+		QueryParams queryParams = new QueryParams();
+		queryParams.setQ(request.getParameter("q") == null ? "*" : request.getParameter("q"));
+		queryParams.setFrom(request.getParameter("from") == null ? 0 : Integer.parseInt(request.getParameter("from")));
+		queryParams.setSize(request.getParameter("size") == null ? 10 : Integer.parseInt(request.getParameter("size")));
+		queryParams.setHlfl(request.getParameter("hlfl") == null ? null : request.getParameter("hlfl"));
+		queryParams.setSort(request.getParameter("sort") == null ? "" : request.getParameter("sort"));
+		logger.info(queryParams.toString());
+		return queryService.querySingle(queryParams);
 	}
 }

@@ -14,6 +14,8 @@
 			<includes>
 				<include>logback.xml</include>
 				<include>web-server.properties</include>
+				<include>elasticsearch.properties</include>
+				<include>utils.properties</include>
 			</includes>
 			<outputDirectory>/conf</outputDirectory>
 			<filtered>true</filtered>

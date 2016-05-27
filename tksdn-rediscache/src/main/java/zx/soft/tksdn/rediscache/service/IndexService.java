@@ -15,7 +15,6 @@ import zx.soft.tksdn.common.index.PostData;
 import zx.soft.tksdn.common.index.RecordInfo;
 import zx.soft.tksdn.es.utils.RedisMQ;
 import zx.soft.tksdn.rediscache.domain.ErrorResponse;
-import zx.soft.utils.json.JsonUtils;
 import zx.soft.utils.log.LogbackUtil;
 import zx.soft.utils.threads.ApplyThreadPool;
 
@@ -88,19 +87,19 @@ public class IndexService {
 	 * 数据持久化到Redis
 	 */
 	private void add2Redis(List<RecordInfo> records) {
-		String[] data = new String[records.size()];
-		for (int i = 0; i < records.size(); i++) {
-			if (records.get(i).getPic_url().length() > 500) {
-				records.get(i).setPic_url(records.get(i).getPic_url().substring(0, 500));
-			}
-			//			logger.info("MQ Record:{}", records.get(i).getId());
-			data[i] = JsonUtils.toJsonWithoutPretty(records.get(i));
-		}
-		try {
-			redisMQ.addRecord(data);
-		} catch (Exception e) {
-			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
-		}
+//		String[] data = new String[records.size()];
+//		for (int i = 0; i < records.size(); i++) {
+//			if (records.get(i).getPic_url().length() > 500) {
+//				records.get(i).setPic_url(records.get(i).getPic_url().substring(0, 500));
+//			}
+//			//			logger.info("MQ Record:{}", records.get(i).getId());
+//			data[i] = JsonUtils.toJsonWithoutPretty(records.get(i));
+//		}
+//		try {
+//			redisMQ.addRecord(data);
+//		} catch (Exception e) {
+//			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
+//		}
 	}
 
 	/**
