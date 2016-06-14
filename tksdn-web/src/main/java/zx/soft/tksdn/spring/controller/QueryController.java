@@ -1,4 +1,4 @@
-	package zx.soft.tksdn.spring.controller;
+package zx.soft.tksdn.spring.controller;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -7,13 +7,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import zx.soft.tksdn.common.domain.OverAllRequest;
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.spring.service.KeywordQueryService;
+import zx.soft.tksdn.spring.service.OverAllSearchService;
+import zx.soft.utils.json.JsonUtils;
 
 /**
  *
@@ -27,6 +31,8 @@ public class QueryController {
 
 	@Inject
 	private KeywordQueryService queryService;
+	@Inject
+	private OverAllSearchService searchService;
 
 	/**
 	 * 获取关键词数量
@@ -58,5 +64,19 @@ public class QueryController {
 		queryParams.setSort(request.getParameter("sort") == null ? "" : request.getParameter("sort"));
 		logger.info(queryParams.toString());
 		return queryService.querySingle(queryParams);
+	}
+
+	/**
+	 * 综合搜索
+	 * 模糊查询
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/oversearch", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.CREATED)
+	public @ResponseBody Object overAllSearch(@RequestBody OverAllRequest request) {
+		logger.info(JsonUtils.toJsonWithoutPretty(request));
+
+		return searchService.get(request);
 	}
 }

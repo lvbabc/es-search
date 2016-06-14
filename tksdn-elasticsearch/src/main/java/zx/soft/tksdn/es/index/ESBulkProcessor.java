@@ -1,7 +1,5 @@
 package zx.soft.tksdn.es.index;
 
-import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -15,8 +13,6 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,9 +70,8 @@ public class ESBulkProcessor {
 		}
 		try {
 			if (recordInfos != null) {
-				logger.info(Integer.toString(recordInfos.size()));
 				for (RecordInfo recordInfo : recordInfos) {
-					//					IndexRequest indexRequest = new IndexRequest(index, type).source(getTksdnDoc(recordInfo));
+//					logger.info(JsonUtils.toJsonWithoutPretty(recordInfo));
 					IndexRequest indexRequest = new IndexRequest(index, type)
 							.source(JsonUtils.toJsonWithoutPretty(recordInfo));
 					bulkProcessor.add(indexRequest);
@@ -95,9 +90,10 @@ public class ESBulkProcessor {
 		//		}
 		try {
 			if (recordInfo != null) {
-//				logger.info(JsonUtils.toJsonWithoutPretty(recordInfo).toString());
-//				logger.info(getTksdnDoc(recordInfo).string());
-				IndexRequest indexRequest = new IndexRequest(index, type,recordInfo.getId()).source(JsonUtils.toJsonWithoutPretty(recordInfo));
+				//				logger.info(JsonUtils.toJsonWithoutPretty(recordInfo).toString());
+				//				logger.info(getTksdnDoc(recordInfo).string());
+				IndexRequest indexRequest = new IndexRequest(index, type)
+						.source(JsonUtils.toJsonWithoutPretty(recordInfo));
 				bulkProcessor.add(indexRequest);
 			}
 
@@ -109,29 +105,29 @@ public class ESBulkProcessor {
 	/**
 	 * 每次更改字段的时候，这里也需要更改。
 	 */
-	public static XContentBuilder getTksdnDoc(RecordInfo record) {
-
-		if (record.getId() == null || record.getId() == "" || record.getId().length() == 0) {
-			logger.error("Record's id is null,{}", record);
-			return null;
-		}
-		XContentBuilder builder = null;
-		try {
-			builder = XContentFactory.jsonBuilder()
-					.startObject()
-					.field("keyword", record.getKeyword().trim())
-					.field("title", record.getTitle().trim())
-					.field("url", record.getUrl().trim())
-					.field("content", record.getContent().trim())
-					.field("timestamp", new Date(record.getTimestamp()))
-					.field("lasttime", new Date(record.getLasttime()))
-					.field("ip_addr", record.getIp_addr())
-					.field("type", record.getType()).endObject();
-		} catch (IOException e) {
-			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
-		}
-		return builder;
-	}
+	//	public static XContentBuilder getTksdnDoc(RecordInfo record) {
+	//
+	//		if (record.getId() == null || record.getId() == "" || record.getId().length() == 0) {
+	//			logger.error("Record's id is null,{}", record);
+	//			return null;
+	//		}
+	//		XContentBuilder builder = null;
+	//		try {
+	//			builder = XContentFactory.jsonBuilder()
+	//					.startObject()
+	//					.field("keyword", record.getKeyword().trim())
+	//					.field("title", record.getTitle().trim())
+	//					.field("url", record.getUrl().trim())
+	//					.field("content", record.getContent().trim())
+	//					.field("timestamp", new Date(record.getTimestamp()))
+	//					.field("lasttime", new Date(record.getLasttime()))
+	//					.field("ip_addr", record.getIp_addr())
+	//					.field("type", record.getType()).endObject();
+	//		} catch (IOException e) {
+	//			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
+	//		}
+	//		return builder;
+	//	}
 
 	public void closeESBulkProcessor() {
 		try {

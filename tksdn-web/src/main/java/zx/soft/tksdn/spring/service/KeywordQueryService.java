@@ -29,13 +29,10 @@ public class KeywordQueryService {
 		}
 		logger.info(keywords.toString());
 		return ESQueryCore.getInstance().queryKeywords(keywords);
-
 	}
 
 	public QueryResult querySingle(QueryParams queryParams) {
 
 		return ESQueryCore.getInstance().queryData(queryParams, false);
-
 	}
-
 }

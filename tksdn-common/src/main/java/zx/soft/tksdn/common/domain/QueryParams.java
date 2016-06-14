@@ -11,7 +11,7 @@ import java.util.Arrays;
 public class QueryParams implements Cloneable {
 
 	//索引参数
-	private String indexName = "tekuan";
+	private String indexName = "tekuanfirst";
 	private String indexType = "record";
 	private String preferenceType = "";
 	private String searchType = "";

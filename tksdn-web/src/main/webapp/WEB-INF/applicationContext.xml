@@ -14,9 +14,6 @@
 	<context:component-scan base-package="zx.soft.tksdn.spring.controller" />
 	<context:component-scan base-package="zx.soft.tksdn.spring.service" />
 	
-<!-- 	<bean id="persistCore" class="zx.soft.sent.core.persist.PersistCore" />
-	
-	<bean id="redisMQ" class="zx.soft.sent.solr.utils.RedisMQ" /> -->
 
 	<bean id="customObjectMapper" class="zx.soft.tksdn.spring.utils.CustomObjectMapper" />
 

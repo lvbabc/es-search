@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import zx.soft.tksdn.common.domain.SentimentConstant;
 import zx.soft.tksdn.common.index.PostData;
 import zx.soft.tksdn.common.index.RecordInfo;
 import zx.soft.tksdn.es.utils.RedisMQ;
@@ -61,10 +60,10 @@ public class IndexService {
 						// 去重处理
 						List<RecordInfo> recordsNew = new ArrayList<>();
 						for (RecordInfo record : postData.getRecords()) {
-							if (!redisMQ.sismember(SentimentConstant.TK_KEY_INSERTED, record.getId())) {
-								redisMQ.sadd(SentimentConstant.TK_KEY_INSERTED, record.getId());
-								recordsNew.add(record);
-							}
+//							if (!redisMQ.sismember(SentimentConstant.TK_KEY_INSERTED, record.getId())) {
+//								redisMQ.sadd(SentimentConstant.TK_KEY_INSERTED, record.getId());
+//								recordsNew.add(record);
+//							}
 						}
 						// 持久化到Redis
 						if (recordsNew.size() > 0) {

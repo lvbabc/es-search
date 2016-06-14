@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mainClass=zx.soft.sent.spring.driver.SentimentSpringDriver
+mainClass=zx.soft.tksdn.es.driver.TksdnESDriver
 
 # resolve links - $0 may be a softlink
 PRG="$0"

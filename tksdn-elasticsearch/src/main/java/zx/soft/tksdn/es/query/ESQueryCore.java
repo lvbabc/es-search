@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import zx.soft.tksdn.common.domain.KeywordsCount;
+import zx.soft.tksdn.common.domain.OverAllRequest;
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.common.index.RecordInfo;
 import zx.soft.tksdn.es.domain.QueryResult;
@@ -321,7 +322,7 @@ public class ESQueryCore {
 					}
 				}
 			}
-//			browsingRecord.setId(sHit.getId());
+			//			browsingRecord.setId(sHit.getId());
 			sHits.add(browsingRecord);
 		}
 		return sHits;
@@ -358,6 +359,71 @@ public class ESQueryCore {
 			kCounts.add(keywordsCount);
 		}
 		return kCounts;
+	}
+
+	public QueryResult getOverAll(OverAllRequest request) {
+
+		SearchRequestBuilder search = client.prepareSearch("tekuanfirst").setTypes("record").setFrom(request.getFrom())
+				.setSize(request.getSize());
+		QueryBuilder qBuilder = null;
+		BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
+		if (request.getKey() != null) {
+			qBuilder = QueryBuilders.multiMatchQuery(request.getKey(), "title", "content");
+			boolBuilder.must(qBuilder);
+		}
+		if (request.getTimestampstart() != null) {
+			qBuilder = QueryBuilders.rangeQuery("timestamp").from(request.getTimestampstart())
+					.to(request.getTimestampend()).format("yyyy-MM-dd HH:mm:ss");
+			boolBuilder.must(qBuilder);
+		}
+		if (request.getProtocol_type() != null) {
+			qBuilder = QueryBuilders.termsQuery("protocol_type", request.getProtocol_type());
+			boolBuilder.must(qBuilder);
+		}
+		if (request.getFlow_type() != null) {
+			qBuilder = QueryBuilders.termsQuery("flow_type", request.getFlow_type());
+			boolBuilder.must(qBuilder);
+		}
+		if (request.getResource_type() != null) {
+			qBuilder = QueryBuilders.termsQuery("resource_type", request.getResource_type());
+			boolBuilder.must(qBuilder);
+		}
+		if (request.getPhone_num() != null) {
+			qBuilder = QueryBuilders.termQuery("phone_num", request.getPhone_num());
+			boolBuilder.must(qBuilder);
+		}
+		search.setQuery(boolBuilder);
+		SearchResponse response = null;
+		try {
+			response = search.setExplain(true).execute().actionGet();
+		} catch (SearchException e) {
+			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
+			throw new RuntimeException(e);
+		}
+		if (response == null) {
+			logger.error("no response!");
+			return new QueryResult();
+		}
+		QueryResult result = new QueryResult();
+		SearchHits hits = response.getHits();
+		SearchHit[] searchHists = hits.getHits();
+
+		result.setQTime(response.getTookInMillis());
+		result.setNumFound(response.getHits().getTotalHits());
+		//		if (hits.getHits().length != 0) {
+		//			result.setSort(hits.getHits()[0].getSortValues());
+		//		}
+		List<RecordInfo> sHits = new ArrayList<RecordInfo>();
+		for (SearchHit sHit : searchHists) {
+
+			String json = sHit.getSourceAsString();
+			RecordInfo browsingRecord = JsonUtils.getObject(json, RecordInfo.class);
+			sHits.add(browsingRecord);
+		}
+		result.setSearchHit(sHits);
+		logger.info("numFound=" + result.getNumFound());
+		logger.info("QTime=" + result.getQTime());
+		return result;
 	}
 
 	public void close() {
