@@ -42,6 +42,27 @@
 			<version>${project.version}</version>
 		</dependency>
 		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>tksdn-dao</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.ansj</groupId>
+			<artifactId>ansj_seg</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hankcs</groupId>
+			<artifactId>hanlp</artifactId>
+			<version>portable-1.2.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
 		<!-- 日志组件 -->
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -78,11 +99,8 @@
 				<configuration>
 					<excludes>
 						<exclude>logback.xml</exclude>
-						<exclude>data_db.properties</exclude>
-						<exclude>oracle_db.properties</exclude>
 						<exclude>cache-config.properties</exclude>
 						<exclude>elasticsearch.properties</exclude>
-						<exclude>hbase.properties</exclude>
 						<exclude>utils.properties</exclude>
 						<exclude>riak.properties</exclude>
 						<exclude>stopwords_zh.txt</exclude>

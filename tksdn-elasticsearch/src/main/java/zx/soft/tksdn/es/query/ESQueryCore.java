@@ -4,7 +4,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,13 +87,125 @@ public class ESQueryCore {
 		return core;
 	}
 
-	/**
-	 * 查询具体数据
+	/*
+	 * 获取关键词数量
 	 */
-	public QueryResult queryData(QueryParams queryParams, boolean isDefault) {
+	public List<KeywordsCount> queryKeywords(List<String> keywords) {
+		MultiSearchRequestBuilder mBuilder = client.prepareMultiSearch();
+		List<KeywordsCount> kCounts = new ArrayList<>();
+		List<Long> counts = new ArrayList<>();
 
-		SearchRequestBuilder search = getSearcher(queryParams, isDefault);
-		//		logger.info(search.toString());
+		for (String string : keywords) {
+			SearchRequestBuilder search = null;
+
+			//			QueryBuilder qBuilder = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", string))
+			//					.should(QueryBuilders.termQuery("title", string));
+			QueryBuilder qBuilder = QueryBuilders.multiMatchQuery(string, "title", "content");
+			search = client.prepareSearch("tekuanfirst").setTypes("record").setSize(0).setQuery(qBuilder);
+			mBuilder.add(search);
+		}
+		MultiSearchResponse mResponse = mBuilder.execute().actionGet();
+
+		for (MultiSearchResponse.Item item : mResponse.getResponses()) {
+			SearchResponse response = item.getResponse();
+			counts.add(response.getHits().getTotalHits());
+		}
+		for (int i = 0; i < keywords.size(); i++) {
+			KeywordsCount keywordsCount = new KeywordsCount();
+			keywordsCount.setKeyword(keywords.get(i));
+			keywordsCount.setCount(counts.get(i));
+			kCounts.add(keywordsCount);
+		}
+		return kCounts;
+	}
+
+	/**
+	 * 综合搜索
+	 * @param queryParams
+	 * @return
+	 */
+	public QueryResult getOverAll(QueryParams queryParams) {
+
+		OverAllRequest request = queryParams.getRequest();
+		SearchRequestBuilder search = getSearcher(queryParams);
+		QueryBuilder qBuilder = null;
+		BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
+		if (request.getKey() != "") {
+			qBuilder = QueryBuilders.multiMatchQuery(request.getKey(), "title", "content");
+			boolBuilder.must(qBuilder);
+		}
+		if (request.getTimestampstart() != "") {
+			qBuilder = QueryBuilders.rangeQuery("timestamp").from(request.getTimestampstart().trim())
+					.to(request.getTimestampend().trim()).format("yyyy-MM-dd HH:mm:ss").timeZone("-08:00");
+			boolBuilder.must(qBuilder);
+		}
+		if (!request.getProtocol_type().isEmpty()) {
+			qBuilder = QueryBuilders.termsQuery("protocol_type", request.getProtocol_type());
+			boolBuilder.must(qBuilder);
+		}
+		if (request.getFlow_type() != "") {
+			qBuilder = QueryBuilders.termQuery("flow_type", request.getFlow_type().trim());
+			boolBuilder.must(qBuilder);
+		}
+		if (!request.getResource_type().isEmpty()) {
+			qBuilder = QueryBuilders.termsQuery("resource_type", request.getResource_type());
+			boolBuilder.must(qBuilder);
+		}
+		if (request.getPhone_num() != "") {
+			String num = request.getPhone_num();
+			if (!num.startsWith("1")) {
+				num = "1" + num;
+			}
+			if (num.length() < 11) {
+				num = num + "*";
+			}
+			qBuilder = QueryBuilders.wildcardQuery("phone_num", num);
+			boolBuilder.must(qBuilder);
+		}
+		search.setQuery(boolBuilder);
+		QueryResult result = getData(queryParams, search);
+		return result;
+	}
+
+	public QueryResult querySingle(QueryParams queryParams) {
+
+		SearchRequestBuilder search = getSearcher(queryParams);
+		QueryBuilder qBuilder = null;
+		if (queryParams.getQ() != "*") {
+
+			BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
+			boolBuilder = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", queryParams.getQ()))
+					.should(QueryBuilders.termQuery("title", queryParams.getQ()));
+			qBuilder = boolBuilder;
+		} else if (queryParams.getId() != "") {
+			qBuilder = QueryBuilders.idsQuery("record").addIds(queryParams.getId());
+		} else {
+			queryParams.setRangeFiled("timestamp");
+			qBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled()).from(queryParams.getRangeStart())
+					.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss").timeZone("-08:00");
+		}
+		search.setQuery(qBuilder);
+		QueryResult result = getData(queryParams, search);
+		return result;
+	}
+
+	public QueryResult hotkey(QueryParams queryParams) {
+
+		SearchRequestBuilder search = getSearcher(queryParams);
+		QueryBuilder queryBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled())
+				.from(queryParams.getRangeStart()).to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss")
+				.timeZone("-08:00");
+		search.setQuery(queryBuilder);
+		QueryResult result = getData(queryParams, search);
+		return result;
+
+	}
+
+	/**
+	 * 获取具体数据
+	 */
+	public QueryResult getData(QueryParams queryParams, SearchRequestBuilder search) {
+
 		SearchResponse response = null;
 		try {
 			response = search.setExplain(true).execute().actionGet();
@@ -128,7 +239,7 @@ public class ESQueryCore {
 	/**
 	 * 构建SearchRequestBuilder,组合参数
 	 */
-	public SearchRequestBuilder getSearcher(QueryParams queryParams, boolean isDefault) {
+	public SearchRequestBuilder getSearcher(QueryParams queryParams) {
 
 		SearchRequestBuilder search = null;
 		if (queryParams.getIndexName() != "") {
@@ -136,15 +247,6 @@ public class ESQueryCore {
 		}
 		if (queryParams.getIndexType() != "") {
 			search.setTypes(queryParams.getIndexType());
-		}
-		if (queryParams.getPreferenceType() != "") {
-			search.setPreference(queryParams.getPreferenceType());
-		}
-		if (queryParams.getSearchType() != "") {
-			search.setSearchType(queryParams.getSearchType());
-		}
-		if (queryParams.getIncludes() != null) {
-			search.setFetchSource(queryParams.getIncludes(), null);
 		}
 		if (queryParams.getFrom() != 0) {
 			search.setFrom(queryParams.getFrom());
@@ -187,63 +289,20 @@ public class ESQueryCore {
 					AggregationBuilders.dateHistogram(queryParams.getDateHistAgg()).field(queryParams.getDateHistAgg())
 							.interval(interval).minDocCount(0).format("yyy-MM-dd HH:mm:ss"));
 		}
-		/**
-		 * 如何选择QueryBuilder 待定
-		 */
-		QueryBuilder queryBuilder = getQueryBuilder(queryParams, isDefault);
-
-		search.setQuery(queryBuilder);
 
 		return search;
 	}
 
-	/**
-	 * 构建QueryBuilder
-	 * @param queryParams
-	 * @return
-	 */
-	private QueryBuilder getQueryBuilder(QueryParams queryParams, boolean isDefault) {
-
-		QueryBuilder queryBuilder = null;
-		//默认查询,返回全部数据
-		if (queryParams.getQ() == "*" && isDefault) {
-			queryBuilder = QueryBuilders.matchAllQuery();
-		}
-		//默认查询,返回指定数据
-		if (queryParams.getQ() != "*" && isDefault) {
-			//默认字段待定
-			queryBuilder = QueryBuilders.queryStringQuery(queryParams.getQ());
-		}
-		//范围查询,目前只用查询日期
-		if (queryParams.getRangeFiled() != "*" && (!isDefault)) {
-			queryBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled()).from(queryParams.getRangeStart())
-					.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss").timeZone(queryParams.getTimeZone());
-		}
-		//bool查询,对查询进行嵌套处理
-		if (queryParams.getbQ() != "*" && (!isDefault)) {
-			Map<String, String> test = new LinkedHashMap<>();
-			BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
-			for (Map.Entry<String, String> entry : test.entrySet()) {
-				QueryBuilder termBuildFirst = QueryBuilders.termQuery("", entry.getKey());
-				QueryBuilder termBuildSecond = QueryBuilders.termQuery("", entry.getValue());
-
-				BoolQueryBuilder builder = QueryBuilders.boolQuery().must(termBuildFirst).must(termBuildSecond);
-				boolBuilder.should(builder);
-			}
-			queryBuilder = boolBuilder;
-		}
-		/**
-		 * 查询单个关键词
-		 */
-		if (queryParams.getQ() != "*" && (!isDefault)) {
-			BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
-			boolBuilder = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", queryParams.getQ()))
-					.should(QueryBuilders.termQuery("title", queryParams.getQ()))
-					.should(QueryBuilders.termQuery("keyword", queryParams.getQ()));
-			queryBuilder = boolBuilder;
-		}
-		return queryBuilder;
-	}
+	//	public QueryResult test(QueryParams queryParams, boolean isDefault) {
+	//
+	//		QueryBuilder test = QueryBuilders.idsQuery("");
+	//		SearchRequestBuilder search = getSearcher(queryParams);
+	//		search.setQuery(test);
+	//		queryData(queryParams, search);
+	//
+	//		return null;
+	//
+	//	}
 
 	/**
 	 * 获取时间聚合查询结果
@@ -278,13 +337,12 @@ public class ESQueryCore {
 			Terms terms = response.getAggregations().get(queryParams.getTermsAgg());
 			List<Terms.Bucket> buckets = terms.getBuckets();
 			SimpleAggInfo aggInfo = new SimpleAggInfo();
-			HashMap<String, Long> t = new LinkedHashMap<>();
+
 			for (Terms.Bucket bucket : buckets) {
-				t.put(bucket.getKeyAsString(), bucket.getDocCount());
+				aggInfo.setName(bucket.getKeyAsString());
+				aggInfo.setValue(bucket.getDocCount());
+				agg.add(aggInfo);
 			}
-			aggInfo.setName(queryParams.getTermsAgg());
-			aggInfo.setValues(t);
-			agg.add(aggInfo);
 		}
 		return agg;
 	}
@@ -306,8 +364,8 @@ public class ESQueryCore {
 		for (SearchHit sHit : searchHists) {
 
 			String json = sHit.getSourceAsString();
-			RecordInfo browsingRecord = JsonUtils.getObject(json, RecordInfo.class);
-
+			RecordInfo record = JsonUtils.getObject(json, RecordInfo.class);
+			record.setId(sHit.getId());
 			if (queryParams.getHlfl() != "") {
 				for (String field : queryParams.getHlfl().split(",")) {
 
@@ -318,116 +376,52 @@ public class ESQueryCore {
 							tString += text;
 						}
 						fields.put(field, tString);
-						browsingRecord.setField(fields);
+						record.setField(fields);
 					}
 				}
 			}
 			//			browsingRecord.setId(sHit.getId());
-			sHits.add(browsingRecord);
+			sHits.add(record);
 		}
 		return sHits;
 	}
 
-	/*
-	 * 获取关键词数量
-	 */
-	public List<KeywordsCount> queryKeywords(List<String> keywords) {
-		MultiSearchRequestBuilder mBuilder = client.prepareMultiSearch();
-		List<KeywordsCount> kCounts = new ArrayList<>();
-		List<Long> counts = new ArrayList<>();
-
-		for (String string : keywords) {
-			SearchRequestBuilder search = null;
-
-			QueryBuilder qBuilder = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", string))
-					.should(QueryBuilders.termQuery("title", string))
-					.should(QueryBuilders.termQuery("keyword", string));
-
-			search = client.prepareSearch("tekuan").setTypes("record").setSize(0).setQuery(qBuilder);
-			mBuilder.add(search);
-		}
-		MultiSearchResponse mResponse = mBuilder.execute().actionGet();
-
-		for (MultiSearchResponse.Item item : mResponse.getResponses()) {
-			SearchResponse response = item.getResponse();
-			counts.add(response.getHits().getTotalHits());
-		}
-		for (int i = 0; i < keywords.size(); i++) {
-			KeywordsCount keywordsCount = new KeywordsCount();
-			keywordsCount.setKeyword(keywords.get(i));
-			keywordsCount.setCount(counts.get(i));
-			kCounts.add(keywordsCount);
-		}
-		return kCounts;
-	}
-
-	public QueryResult getOverAll(OverAllRequest request) {
-
-		SearchRequestBuilder search = client.prepareSearch("tekuanfirst").setTypes("record").setFrom(request.getFrom())
-				.setSize(request.getSize());
-		QueryBuilder qBuilder = null;
-		BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
-		if (request.getKey() != null) {
-			qBuilder = QueryBuilders.multiMatchQuery(request.getKey(), "title", "content");
-			boolBuilder.must(qBuilder);
-		}
-		if (request.getTimestampstart() != null) {
-			qBuilder = QueryBuilders.rangeQuery("timestamp").from(request.getTimestampstart())
-					.to(request.getTimestampend()).format("yyyy-MM-dd HH:mm:ss");
-			boolBuilder.must(qBuilder);
-		}
-		if (request.getProtocol_type() != null) {
-			qBuilder = QueryBuilders.termsQuery("protocol_type", request.getProtocol_type());
-			boolBuilder.must(qBuilder);
-		}
-		if (request.getFlow_type() != null) {
-			qBuilder = QueryBuilders.termsQuery("flow_type", request.getFlow_type());
-			boolBuilder.must(qBuilder);
-		}
-		if (request.getResource_type() != null) {
-			qBuilder = QueryBuilders.termsQuery("resource_type", request.getResource_type());
-			boolBuilder.must(qBuilder);
-		}
-		if (request.getPhone_num() != null) {
-			qBuilder = QueryBuilders.termQuery("phone_num", request.getPhone_num());
-			boolBuilder.must(qBuilder);
-		}
-		search.setQuery(boolBuilder);
-		SearchResponse response = null;
-		try {
-			response = search.setExplain(true).execute().actionGet();
-		} catch (SearchException e) {
-			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
-			throw new RuntimeException(e);
-		}
-		if (response == null) {
-			logger.error("no response!");
-			return new QueryResult();
-		}
-		QueryResult result = new QueryResult();
-		SearchHits hits = response.getHits();
-		SearchHit[] searchHists = hits.getHits();
-
-		result.setQTime(response.getTookInMillis());
-		result.setNumFound(response.getHits().getTotalHits());
-		//		if (hits.getHits().length != 0) {
-		//			result.setSort(hits.getHits()[0].getSortValues());
-		//		}
-		List<RecordInfo> sHits = new ArrayList<RecordInfo>();
-		for (SearchHit sHit : searchHists) {
-
-			String json = sHit.getSourceAsString();
-			RecordInfo browsingRecord = JsonUtils.getObject(json, RecordInfo.class);
-			sHits.add(browsingRecord);
-		}
-		result.setSearchHit(sHits);
-		logger.info("numFound=" + result.getNumFound());
-		logger.info("QTime=" + result.getQTime());
-		return result;
-	}
-
 	public void close() {
 		client.close();
+	}
+
+	/**
+	 * 构建QueryBuilder
+	 * @param queryParams
+	 * @return
+	 */
+	private QueryBuilder getQueryBuilder(QueryParams queryParams, boolean isDefault) {
+
+		QueryBuilder queryBuilder = null;
+		//默认查询,返回全部数据
+		if (queryParams.getQ() == "*" && isDefault) {
+			queryBuilder = QueryBuilders.matchAllQuery();
+		}
+		//默认查询,返回指定数据
+		if (queryParams.getQ() != "*" && isDefault) {
+			//默认字段待定
+			queryBuilder = QueryBuilders.queryStringQuery(queryParams.getQ());
+		}
+		//范围查询,目前只用查询日期
+		if (queryParams.getRangeFiled() != "" && (!isDefault)) {
+			queryBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled()).from(queryParams.getRangeStart())
+					.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss").timeZone(queryParams.getTimeZone());
+		}
+		/**
+		 * 查询单个关键词
+		 */
+		if (queryParams.getQ() != "*" && (!isDefault)) {
+			BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
+			boolBuilder = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", queryParams.getQ()))
+					.should(QueryBuilders.termQuery("title", queryParams.getQ()));
+			queryBuilder = boolBuilder;
+		}
+		return queryBuilder;
 	}
 
 }

@@ -18,11 +18,21 @@
 				<include>elasticsearch.properties</include>
 				<include>web-server.properties</include>
 				<include>utils.properties</include>
+				<include>riak.properties</include>
+				<include>stopwords_zh.txt</include>
 			</includes>
 			<outputDirectory>/conf</outputDirectory>
 			<filtered>true</filtered>
 		</fileSet>
-		
+
+		<fileSet>
+			<directory>ik_dic</directory>
+			<includes>
+				<include>*</include>
+			</includes>
+			<outputDirectory>/ik_dic</outputDirectory>
+		</fileSet>
+
 		<fileSet>
 			<directory>src/main/bin</directory>
 			<includes>
@@ -32,6 +42,7 @@
 			<fileMode>0755</fileMode>
 		</fileSet>
 	</fileSets>
+	
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>/lib</outputDirectory>

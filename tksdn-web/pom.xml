@@ -134,6 +134,7 @@
 						<exclude>cache-config.properties</exclude>
 						<exclude>data_db.properties</exclude>
 						<exclude>web-server.properties</exclude>
+						<exclude>riak.properties</exclude>
 					</excludes>
 				</configuration>
 			</plugin>

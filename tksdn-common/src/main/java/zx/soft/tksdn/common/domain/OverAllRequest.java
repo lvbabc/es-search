@@ -18,7 +18,7 @@ public class OverAllRequest {
 	private String timestampstart;
 	private String timestampend;
 	private List<String> protocol_type;
-	private List<String> flow_type;
+	private String flow_type;
 	private List<String> resource_type;
 	private String phone_num;
 	//  单页显示条数
@@ -87,11 +87,11 @@ public class OverAllRequest {
 		this.protocol_type = protocol_type;
 	}
 
-	public List<String> getFlow_type() {
+	public String getFlow_type() {
 		return flow_type;
 	}
 
-	public void setFlow_type(List<String> flow_type) {
+	public void setFlow_type(String flow_type) {
 		this.flow_type = flow_type;
 	}
 

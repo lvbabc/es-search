@@ -15,15 +15,22 @@ import zx.soft.tksdn.common.index.RecordInfo;
  */
 public class QueryResult {
 
+	//多线程标志
 	private String tag;
-
 	private long numFound;
 	private long QTime;
 	private List<RecordInfo> searchHit = new ArrayList<>();
-	private Object[] sort = null;
 
 	private List<SimpleAggInfo> agg = null;
 	private List<Bucket> dateAgg = null;
+
+	public String getTag() {
+		return tag;
+	}
+
+	public void setTag(String tag) {
+		this.tag = tag;
+	}
 
 	public List<RecordInfo> getSearchHit() {
 		return searchHit;
@@ -41,28 +48,12 @@ public class QueryResult {
 		this.QTime = qTime;
 	}
 
-	public String getTag() {
-		return tag;
-	}
-
-	public void setTag(String tag) {
-		this.tag = tag;
-	}
-
 	public long getNumFound() {
 		return numFound;
 	}
 
 	public void setNumFound(long numFound) {
 		this.numFound = numFound;
-	}
-
-	public Object[] getSort() {
-		return sort;
-	}
-
-	public void setSort(Object[] sort) {
-		this.sort = sort;
 	}
 
 	public List<SimpleAggInfo> getAgg() {

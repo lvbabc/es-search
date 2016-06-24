@@ -39,7 +39,7 @@ public class ESBulkProcessor {
 		bulkProcessor = BulkProcessor.builder(client, new BulkProcessor.Listener() {
 			@Override
 			public void beforeBulk(long executionId, BulkRequest request) {
-				logger.info("action数量", request.numberOfActions());
+				logger.info("action数量: "+request.numberOfActions());
 			}
 
 			@Override

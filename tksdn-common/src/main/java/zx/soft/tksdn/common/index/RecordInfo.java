@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class RecordInfo {
 
+	private String id;
 	private String username;
 	private String identity_id;
 	private String phone_num;
@@ -41,6 +42,7 @@ public class RecordInfo {
 				+ header + ", url=" + url + ", flow_type=" + flow_type + ", resource_type=" + resource_type
 				+ ", domain_name=" + domain_name + ", size=" + size + ", content=" + content + ", title=" + title + "]";
 	}
+
 	public RecordInfo(String username, String identity_id, String phone_num, String iCCID, Date timestamp,
 			String src_ip, String des_ip, String src_port, String des_port, String protocol_type, String header,
 			String url, String flow_type, String resource_type, String domain_name, String size, String content,
@@ -78,6 +80,14 @@ public class RecordInfo {
 
 	public RecordInfo() {
 		//
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public String getUsername() {

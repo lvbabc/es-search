@@ -1,7 +1,5 @@
 package zx.soft.tksdn.common.domain;
 
-import java.util.Arrays;
-
 /**
  * 查询参数类
  *
@@ -15,7 +13,6 @@ public class QueryParams implements Cloneable {
 	private String indexType = "record";
 	private String preferenceType = "";
 	private String searchType = "";
-	private String[] includes = null;
 
 	//默认查询,参数中不带字段,字段为默认设置
 	private String q = "*";
@@ -24,7 +21,7 @@ public class QueryParams implements Cloneable {
 	private String rangeFiled = "";
 	private String rangeStart = "";
 	private String rangeEnd = "";
-	private String timeZone = "+08:00";
+	private String timeZone = "-08:00";
 
 	//bool 查询 boolQuery --未确定具体形式,待以后更改
 	private String bQ = "";
@@ -39,13 +36,20 @@ public class QueryParams implements Cloneable {
 	private String value = "";
 
 	//高亮
-	private String hlfl = null;;
+	private String hlfl = "";
 
 	private String sort = "";
 
 	//分页
 	private int from = 0;
 	private int size = 10;
+
+	private String id = "";
+
+	//关键词数
+	private int count = 20;
+
+	private OverAllRequest request = null;
 
 	public QueryParams() {
 		//
@@ -67,10 +71,11 @@ public class QueryParams implements Cloneable {
 	@Override
 	public String toString() {
 		return "QueryParams [indexName=" + indexName + ", indexType=" + indexType + ", preferenceType=" + preferenceType
-				+ ", searchType=" + searchType + ", includes=" + Arrays.toString(includes) + ", q=" + q + ", termsAgg="
-				+ termsAgg + ", dateHistAgg=" + dateHistAgg + ", term=" + term + ", value=" + value + ", hlfl=" + hlfl
-				+ ", rangeFiled=" + rangeFiled + ", rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd + ", timeZone="
-				+ timeZone + ", sort=" + sort + ", from=" + from + ", size=" + size + "]";
+				+ ", searchType=" + searchType + ", q=" + q + ", rangeFiled=" + rangeFiled + ", rangeStart="
+				+ rangeStart + ", rangeEnd=" + rangeEnd + ", timeZone=" + timeZone + ", bQ=" + bQ + ", termsAgg="
+				+ termsAgg + ", dateHistAgg=" + dateHistAgg + ", dateInterval=" + dateInterval + ", term=" + term
+				+ ", value=" + value + ", hlfl=" + hlfl + ", sort=" + sort + ", from=" + from + ", size=" + size
+				+ ", id=" + id + ", count=" + count + ", request=" + request + "]";
 	}
 
 	public String getIndexName() {
@@ -121,14 +126,6 @@ public class QueryParams implements Cloneable {
 		this.searchType = searchType;
 	}
 
-	public String[] getIncludes() {
-		return includes;
-	}
-
-	public void setIncludes(String[] includes) {
-		this.includes = includes;
-	}
-
 	public String getSort() {
 		return sort;
 	}
@@ -143,6 +140,14 @@ public class QueryParams implements Cloneable {
 
 	public void setQ(String q) {
 		this.q = q;
+	}
+
+	public OverAllRequest getRequest() {
+		return request;
+	}
+
+	public void setRequest(OverAllRequest request) {
+		this.request = request;
 	}
 
 	public String getRangeFiled() {
@@ -231,6 +236,22 @@ public class QueryParams implements Cloneable {
 
 	public void setbQ(String bQ) {
 		this.bQ = bQ;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public int getCount() {
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count = count;
 	}
 
 }

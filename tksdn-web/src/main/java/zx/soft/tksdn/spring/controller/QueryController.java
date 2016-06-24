@@ -17,6 +17,7 @@ import zx.soft.tksdn.common.domain.OverAllRequest;
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.spring.service.KeywordQueryService;
 import zx.soft.tksdn.spring.service.OverAllSearchService;
+import zx.soft.tksdn.spring.service.TrendService;
 import zx.soft.utils.json.JsonUtils;
 
 /**
@@ -33,6 +34,8 @@ public class QueryController {
 	private KeywordQueryService queryService;
 	@Inject
 	private OverAllSearchService searchService;
+	@Inject
+	private TrendService trendService;
 
 	/**
 	 * 获取关键词数量
@@ -60,8 +63,12 @@ public class QueryController {
 		queryParams.setQ(request.getParameter("q") == null ? "*" : request.getParameter("q"));
 		queryParams.setFrom(request.getParameter("from") == null ? 0 : Integer.parseInt(request.getParameter("from")));
 		queryParams.setSize(request.getParameter("size") == null ? 10 : Integer.parseInt(request.getParameter("size")));
-		queryParams.setHlfl(request.getParameter("hlfl") == null ? null : request.getParameter("hlfl"));
+		queryParams.setHlfl(request.getParameter("hlfl") == null ? "" : request.getParameter("hlfl"));
 		queryParams.setSort(request.getParameter("sort") == null ? "" : request.getParameter("sort"));
+		queryParams.setId(request.getParameter("id") == null ? "" : request.getParameter("id"));
+		queryParams.setTermsAgg(request.getParameter("termsAgg") == null ? "" : request.getParameter("termsAgg"));
+		queryParams.setRangeStart(request.getParameter("timestampstart") == null ? "" : request.getParameter("timestampstart"));
+		queryParams.setRangeEnd(request.getParameter("timestampend") == null ? "" : request.getParameter("timestampend"));
 		logger.info(queryParams.toString());
 		return queryService.querySingle(queryParams);
 	}
@@ -75,8 +82,24 @@ public class QueryController {
 	@RequestMapping(value = "/oversearch", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	public @ResponseBody Object overAllSearch(@RequestBody OverAllRequest request) {
-		logger.info(JsonUtils.toJsonWithoutPretty(request));
 
+		logger.info(JsonUtils.toJsonWithoutPretty(request));
 		return searchService.get(request);
+	}
+
+	/**
+	 * 获取关键词数量
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/hotkey", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.CREATED)
+	public @ResponseBody Object getHotKey(HttpServletRequest request) {
+		QueryParams queryParams = new QueryParams();
+		queryParams.setCount(request.getParameter("count") == null ? 20 : Integer.parseInt(request.getParameter("count")));
+		queryParams.setRangeStart(request.getParameter("rangeStart") == null ? "" : request.getParameter("rangeStart"));
+		queryParams.setRangeEnd(request.getParameter("rangeEnd") == null ? "" : request.getParameter("rangeEnd"));
+		logger.info(queryParams.toString());
+		return trendService.getTrendInfos(queryParams);
 	}
 }

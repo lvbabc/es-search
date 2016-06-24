@@ -17,6 +17,7 @@
 		<module>tksdn-common</module>
 		<module>tksdn-web</module>
 		<module>tksdn-rediscache</module>
+		<module>tksdn-dao</module>
 	</modules>
 
 	<dependencies>

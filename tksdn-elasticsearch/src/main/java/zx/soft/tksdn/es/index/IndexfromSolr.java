@@ -1,5 +1,7 @@
 package zx.soft.tksdn.es.index;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,12 +18,13 @@ import zx.soft.tksdn.common.index.RecordInfo;
 import zx.soft.tksdn.es.query.ESTransportClient;
 import zx.soft.utils.http.HttpClientDaoImpl;
 import zx.soft.utils.log.LogbackUtil;
+import zx.soft.utils.time.TimeUtils;
 
 public class IndexfromSolr {
 
 	private final ESBulkProcessor processor;
 	private final Client client;
-	private static final String BASE_URL = "http://192.168.32.13:5920/sentiment/search?q=";
+	private static final String BASE_URL = "http://192.168.3.55:5920/sentiment/search?q=";
 	public static Logger logger = LoggerFactory.getLogger(ESBulkProcessor.class);
 
 	private static List<String> ip = new ArrayList<>();
@@ -64,7 +67,6 @@ public class IndexfromSolr {
 		domain.add("yotube.com");
 		domain.add("twitter.com");
 
-
 	}
 
 	public IndexfromSolr() {
@@ -72,18 +74,25 @@ public class IndexfromSolr {
 		processor = new ESBulkProcessor(client);
 	}
 
-	public static void main(String[] args) throws ParseException {
+	public static void main(String[] args) throws ParseException, UnsupportedEncodingException {
 		IndexfromSolr indexFromSolr = new IndexfromSolr();
 		indexFromSolr.run();
 	}
 
-	private void run() throws ParseException {
+	private void run() throws ParseException, UnsupportedEncodingException {
 
 		int count = 0;
-		for (int i = 0; i < 100000000; i += 100) {
+		long endTime = TimeUtils.getZeroHourTime(System.currentTimeMillis());
+		long startTime = TimeUtils.transCurrentTime(endTime, 0, 0, 0, -1);
+
+		for (int i = 0; i < 1000; i += 100) {
 			StringBuilder sBuilder = new StringBuilder();
 			count = i + 100;
-			sBuilder.append(BASE_URL + "*:*&start=" + i + "&rows=" + count + "&fq=platform:3");
+			sBuilder.append(BASE_URL + "*:*&start=" + i + "&rows=" + count + "&fq=timestamp:"
+					+ URLEncoder.encode("[", "utf-8") + TimeUtils.transToSolrDateStr(startTime)
+					+ URLEncoder.encode(" ", "utf-8") + "TO" + URLEncoder.encode(" ", "utf-8")
+					+ TimeUtils.transToSolrDateStr(endTime) + URLEncoder.encode("]", "utf-8"));
+			logger.info(sBuilder.toString());
 			String response = new HttpClientDaoImpl().doGet(sBuilder.toString());
 
 			JSONObject obj = JSONObject.fromObject(response);
@@ -98,7 +107,7 @@ public class IndexfromSolr {
 							createRandomPort(), createRandomTime(), createRandomIP(), createRandomIP(),
 							createRandomPort(), createRandomPort(), createRandomProtocol(), "test",
 							info.getString("url"), createRandomFlo(), createRandomRes(), createRandomDoma(),
-							createRandomPort(), info.getString("content"),"test");
+							createRandomPort(), info.getString("content"), "test");
 					result.add(recordInfo);
 
 				} catch (Exception e) {
@@ -129,7 +138,6 @@ public class IndexfromSolr {
 		return ip.get(random.nextInt(ip.size()));
 	}
 
-
 	private static Date createRandomTime() {
 		return new Date((System.currentTimeMillis() / 1000 + (timeIncrement++) * 4) * 1000);
 	}
@@ -139,15 +147,15 @@ public class IndexfromSolr {
 	}
 
 	private static String createRandomNum() {
-	String chars = "0123456789";
-	char[] rands = new char[11];
-	rands[0] = '1';
-	for (int i = 1; i < 11; i++) {
-		int rand = (int) (Math.random() * 10);
+		String chars = "0123456789";
+		char[] rands = new char[11];
+		rands[0] = '1';
+		for (int i = 1; i < 11; i++) {
+			int rand = (int) (Math.random() * 10);
 
-		rands[i] = chars.charAt(rand);
-	}
-	String chTOStr = String.valueOf(rands);
-	return chTOStr;
+			rands[i] = chars.charAt(rand);
+		}
+		String chTOStr = String.valueOf(rands);
+		return chTOStr;
 	}
 }

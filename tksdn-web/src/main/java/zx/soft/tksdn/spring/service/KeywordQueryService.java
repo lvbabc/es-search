@@ -11,6 +11,7 @@ import zx.soft.tksdn.common.domain.KeywordsCount;
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.query.ESQueryCore;
+import zx.soft.tksdn.es.query.ESQueryCore;
 
 /**
  * @author lvbing
@@ -18,7 +19,6 @@ import zx.soft.tksdn.es.query.ESQueryCore;
 @Service
 public class KeywordQueryService {
 	private static Logger logger = LoggerFactory.getLogger(KeywordQueryService.class);
-
 
 	public List<KeywordsCount> queryStringQuery(QueryParams queryParams) {
 
@@ -33,6 +33,7 @@ public class KeywordQueryService {
 
 	public QueryResult querySingle(QueryParams queryParams) {
 
-		return ESQueryCore.getInstance().queryData(queryParams, false);
+		return ESQueryCore.getInstance().querySingle(queryParams);
 	}
+
 }
