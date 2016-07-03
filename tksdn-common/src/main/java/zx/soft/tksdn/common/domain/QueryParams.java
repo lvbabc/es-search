@@ -9,7 +9,7 @@ package zx.soft.tksdn.common.domain;
 public class QueryParams implements Cloneable {
 
 	//索引参数
-	private String indexName = "tekuanfirst";
+	private String indexName = "tekuan";
 	private String indexType = "record";
 	private String preferenceType = "";
 	private String searchType = "";
@@ -21,7 +21,7 @@ public class QueryParams implements Cloneable {
 	private String rangeFiled = "";
 	private String rangeStart = "";
 	private String rangeEnd = "";
-	private String timeZone = "-08:00";
+	private String timeZone = "+08:00";
 
 	//bool 查询 boolQuery --未确定具体形式,待以后更改
 	private String bQ = "";

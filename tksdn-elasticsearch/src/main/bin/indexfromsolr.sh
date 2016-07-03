@@ -1,11 +1,11 @@
 #!/bin/bash
 
-echo "Starting ..."
-
+echo "Starting indexfromSolrNow ..."
 while (true)
 do
-    bin/ctl.sh start indexfromSolr
-    sleep 1h
+    bin/ctl.sh start indexfromSolrNow
+	echo "OneLoop Finished!"
+    sleep 3600
 done
-
-echo "Finishing ..."
+echo "Finishing indexfromSolr ..."
+    

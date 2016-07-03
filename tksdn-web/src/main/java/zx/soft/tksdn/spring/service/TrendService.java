@@ -16,9 +16,9 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
+import zx.soft.tksdn.common.domain.KeywordsCount;
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.dao.insight.RiakInsight;
-import zx.soft.tksdn.spring.domain.HotKeyResult;
 import zx.soft.tksdn.spring.domain.TrendResult;
 import zx.soft.utils.algo.TopN;
 import zx.soft.utils.algo.TopN.KeyValue;
@@ -69,14 +69,16 @@ public class TrendService {
 		logger.info("获得倾向信息耗时: {}ms", System.currentTimeMillis() - start);
 
 		List<Map.Entry<String, Integer>> result = hotkey.getSortedhotKeys();
-		List<HotKeyResult> results = new ArrayList<HotKeyResult>();
+		//		List<String> keywords = new ArrayList<>();
+		List<KeywordsCount> results = new ArrayList<KeywordsCount>();
 		for (Entry<String, Integer> entry : result) {
-			HotKeyResult hotKeyResult = new HotKeyResult();
+			KeywordsCount hotKeyResult = new KeywordsCount();
 			hotKeyResult.setKeyword(entry.getKey());
-			hotKeyResult.setCount(entry.getValue());
+			hotKeyResult.setCount((long) entry.getValue());
 			results.add(hotKeyResult);
+			//			keywords.add(entry.getKey());
 		}
-		return results;
+		return results;//getEqual(keywords, params);
 	}
 
 	private List<KeyValue<String, Integer>> getHotKeys(QueryParams params) {
@@ -97,11 +99,29 @@ public class TrendService {
 		List<Map<String, Integer>> hoursHotKeys = AwesomeThreadPool.runCallables(5, calls);
 		for (Map<String, Integer> hourHotKey : hoursHotKeys) {
 			for (Entry<String, Integer> entry : hourHotKey.entrySet()) {
+
 				hotKeys.add(entry.getKey(), entry.getValue());
 			}
 		}
-		return TopN.topNOnValue(hotKeys, params.getCount());
+		return TopN.topNOnValue(hotKeys, 20);
 	}
+
+//	private List<KeywordsCount> getEqual(List<String> keywords, QueryParams params) {
+//		params.setRangeFiled("timestamp");
+//		long endTime = TimeUtils.getZeroHourTime(System.currentTimeMillis());
+//		long startTime = TimeUtils.transCurrentTime(endTime, 0, -1, 0, 0);
+//		if (params.getRangeStart() != "") {
+//			long lTime = TimeUtils.transTimeLong(params.getRangeStart().trim());
+//			startTime = TimeUtils.getZeroHourTime(lTime);
+//			long rTime = TimeUtils.transTimeLong(params.getRangeEnd().trim());
+//			endTime = TimeUtils.getZeroHourTime(rTime);
+//		}
+//		params.setRangeStart(TimeUtils.transToCommonDateStr(startTime));
+//		params.setRangeEnd(TimeUtils.transToCommonDateStr(endTime));
+//		List<KeywordsCount> kCounts = ESQueryCore.getInstance().queryKeywords(keywords, params);
+//		Collections.sort(kCounts);
+//		return kCounts.subList(0, params.getCount());
+//	}
 
 	public static class RiakCallable implements Callable<Map<String, Integer>> {
 		private final long milliSecond;
@@ -122,6 +142,5 @@ public class TrendService {
 			}
 			return new HashMap<>();
 		}
-
 	}
 }

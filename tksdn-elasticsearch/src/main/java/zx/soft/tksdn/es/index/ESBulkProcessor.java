@@ -39,7 +39,7 @@ public class ESBulkProcessor {
 		bulkProcessor = BulkProcessor.builder(client, new BulkProcessor.Listener() {
 			@Override
 			public void beforeBulk(long executionId, BulkRequest request) {
-				logger.info("action数量: "+request.numberOfActions());
+				logger.info("action数量: " + request.numberOfActions());
 			}
 
 			@Override
@@ -71,9 +71,8 @@ public class ESBulkProcessor {
 		try {
 			if (recordInfos != null) {
 				for (RecordInfo recordInfo : recordInfos) {
-//					logger.info(JsonUtils.toJsonWithoutPretty(recordInfo));
-					IndexRequest indexRequest = new IndexRequest(index, type)
-							.source(JsonUtils.toJsonWithoutPretty(recordInfo));
+					IndexRequest indexRequest = new IndexRequest(index, type, recordInfo.getId())
+							.source(JsonUtils.toJsonWithoutPretty(getTksdnDoc(recordInfo)));
 					bulkProcessor.add(indexRequest);
 				}
 			}
@@ -85,49 +84,24 @@ public class ESBulkProcessor {
 
 	public void doIndex(String index, String type, RecordInfo recordInfo) {
 
-		//		if (recordInfos.size() == 0) {
-		//			return;
-		//		}
 		try {
 			if (recordInfo != null) {
-				//				logger.info(JsonUtils.toJsonWithoutPretty(recordInfo).toString());
-				//				logger.info(getTksdnDoc(recordInfo).string());
 				IndexRequest indexRequest = new IndexRequest(index, type)
 						.source(JsonUtils.toJsonWithoutPretty(recordInfo));
 				bulkProcessor.add(indexRequest);
 			}
-
 		} catch (Exception e) {
 			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
 		}
 	}
 
 	/**
-	 * 每次更改字段的时候，这里也需要更改。
 	 */
-	//	public static XContentBuilder getTksdnDoc(RecordInfo record) {
-	//
-	//		if (record.getId() == null || record.getId() == "" || record.getId().length() == 0) {
-	//			logger.error("Record's id is null,{}", record);
-	//			return null;
-	//		}
-	//		XContentBuilder builder = null;
-	//		try {
-	//			builder = XContentFactory.jsonBuilder()
-	//					.startObject()
-	//					.field("keyword", record.getKeyword().trim())
-	//					.field("title", record.getTitle().trim())
-	//					.field("url", record.getUrl().trim())
-	//					.field("content", record.getContent().trim())
-	//					.field("timestamp", new Date(record.getTimestamp()))
-	//					.field("lasttime", new Date(record.getLasttime()))
-	//					.field("ip_addr", record.getIp_addr())
-	//					.field("type", record.getType()).endObject();
-	//		} catch (IOException e) {
-	//			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
-	//		}
-	//		return builder;
-	//	}
+	public static RecordInfo getTksdnDoc(RecordInfo record) {
+
+		record.setId(null);
+		return record;
+	}
 
 	public void closeESBulkProcessor() {
 		try {

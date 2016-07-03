@@ -11,6 +11,7 @@ import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.query.ESQueryCore;
 import zx.soft.utils.json.JsonUtils;
+import zx.soft.utils.time.TimeUtils;
 
 /**
  * @author lvbing
@@ -29,6 +30,14 @@ public class OverAllSearchService {
 		}
 		for (int i = 0; i < resource_type.size(); i++) {
 			resource_type.set(i, resource_type.get(i).toUpperCase());
+		}
+
+		if (request.getTimestampstart() == "") {
+			long now = TimeUtils.getZeroHourTime(System.currentTimeMillis());
+			long endTime = TimeUtils.transCurrentTime(now, 0, 0, 0, 0);
+			long startTime = TimeUtils.transCurrentTime(endTime, 0, -1, 0, 0);
+			request.setTimestampstart(TimeUtils.transToCommonDateStr(startTime));
+			request.setTimestampend(TimeUtils.transToCommonDateStr(endTime));
 		}
 
 		QueryParams queryParams = new QueryParams();

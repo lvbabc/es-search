@@ -11,7 +11,6 @@ import zx.soft.tksdn.common.domain.KeywordsCount;
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.query.ESQueryCore;
-import zx.soft.tksdn.es.query.ESQueryCore;
 
 /**
  * @author lvbing
@@ -28,7 +27,7 @@ public class KeywordQueryService {
 			keywords.add(key.trim());
 		}
 		logger.info(keywords.toString());
-		return ESQueryCore.getInstance().queryKeywords(keywords);
+		return ESQueryCore.getInstance().queryKeywords(keywords,queryParams);
 	}
 
 	public QueryResult querySingle(QueryParams queryParams) {

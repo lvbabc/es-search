@@ -7,4 +7,4 @@ do
 	echo "OneLoop Finished!"
     sleep 1800
 done
-echo "Finishing insightHotKey ..."
+echo "Finishing HotKey ..."

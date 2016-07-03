@@ -1,5 +1,6 @@
 package zx.soft.tksdn.common.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,13 +15,13 @@ import zx.soft.utils.json.JsonUtils;
  */
 public class OverAllRequest {
 
-	private String key;
-	private String timestampstart;
-	private String timestampend;
-	private List<String> protocol_type;
-	private String flow_type;
-	private List<String> resource_type;
-	private String phone_num;
+	private String key = "";
+	private String timestampstart = "";
+	private String timestampend = "";
+	private List<String> protocol_type = new ArrayList<String>();
+	private String flow_type = "";
+	private List<String> resource_type = new ArrayList<String>();
+	private String phone_num = "";
 	//  单页显示条数
 	private int size = 10;
 	//  分页起始
@@ -35,8 +36,7 @@ public class OverAllRequest {
 
 	public static void main(String[] args) {
 		OverAllRequest request = new OverAllRequest();
-		request.setSize(10);
-		request.setFrom(0);
+		request.setSize(100);
 		String str = JsonUtils.toJsonWithoutPretty(request);
 		System.out.println(str);
 		str = "{\"key\":\"张三\",\"timestampstart\":\"342425188545650213\",\"timestampend\":\"15456784512\","
@@ -68,8 +68,6 @@ public class OverAllRequest {
 	public void setTimestampend(String timestampend) {
 		this.timestampend = timestampend;
 	}
-
-
 
 	public String getPhone_num() {
 		return phone_num;

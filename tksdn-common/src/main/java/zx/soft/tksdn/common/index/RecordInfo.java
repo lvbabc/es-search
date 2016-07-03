@@ -3,6 +3,7 @@ package zx.soft.tksdn.common.index;
 import java.util.Date;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -14,40 +15,59 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class RecordInfo {
 
 	private String id;
+	@JsonProperty
 	private String username;
+	@JsonProperty
 	private String identity_id;
+	@JsonProperty
 	private String phone_num;
+	@JsonProperty
 	private String ICCID;
+	@JsonProperty
 	private Date timestamp;
+	@JsonProperty
 	private String src_ip;
+	@JsonProperty
 	private String des_ip;
+	@JsonProperty
 	private String src_port;
+	@JsonProperty
 	private String des_port;
+	@JsonProperty
 	private String protocol_type;
+	@JsonProperty
 	private String header;
+	@JsonProperty
 	private String url = "";
-
+	@JsonProperty
 	private String flow_type;
+	@JsonProperty
 	private String resource_type;
+	@JsonProperty
 	private String domain_name;
+	@JsonProperty
 	private String size;
+	@JsonProperty
 	private String content = "";
+	@JsonProperty
 	private String title = "";
 
 	@Override
 	public String toString() {
-		return "RecordInfo [username=" + username + ", identity_id=" + identity_id + ", phone_num=" + phone_num
-				+ ", ICCID=" + ICCID + ", timestamp=" + timestamp + ", src_ip=" + src_ip + ", des_ip=" + des_ip
-				+ ", src_port=" + src_port + ", des_port=" + des_port + ", protocol_type=" + protocol_type + ", header="
-				+ header + ", url=" + url + ", flow_type=" + flow_type + ", resource_type=" + resource_type
-				+ ", domain_name=" + domain_name + ", size=" + size + ", content=" + content + ", title=" + title + "]";
+		return "RecordInfo [id=" + id + ", username=" + username + ", identity_id=" + identity_id + ", phone_num="
+				+ phone_num + ", ICCID=" + ICCID + ", timestamp=" + timestamp + ", src_ip=" + src_ip + ", des_ip="
+				+ des_ip + ", src_port=" + src_port + ", des_port=" + des_port + ", protocol_type=" + protocol_type
+				+ ", header=" + header + ", url=" + url + ", flow_type=" + flow_type + ", resource_type="
+				+ resource_type + ", domain_name=" + domain_name + ", size=" + size + ", content=" + content
+				+ ", title=" + title + "]";
 	}
 
-	public RecordInfo(String username, String identity_id, String phone_num, String iCCID, Date timestamp,
+	public RecordInfo(String id, String username, String identity_id, String phone_num, String iCCID, Date timestamp,
 			String src_ip, String des_ip, String src_port, String des_port, String protocol_type, String header,
 			String url, String flow_type, String resource_type, String domain_name, String size, String content,
 			String title) {
 		super();
+		this.id = id;
 		this.username = username;
 		this.identity_id = identity_id;
 		this.phone_num = phone_num;
@@ -73,8 +93,8 @@ public class RecordInfo {
 		if (test.get("content") != null) {
 			setContent(test.get("content").toString());
 		}
-		if (test.get("keyword") != null) {
-
+		if (test.get("timestamp") != null) {
+//			setTimestamp(test.get("timestamp"));
 		}
 	}
 
@@ -82,10 +102,12 @@ public class RecordInfo {
 		//
 	}
 
+	@JsonProperty
 	public String getId() {
 		return id;
 	}
 
+	@JsonIgnore
 	public void setId(String id) {
 		this.id = id;
 	}
@@ -120,7 +142,7 @@ public class RecordInfo {
 	}
 
 	public void setICCID(String iCCID) {
-		ICCID = iCCID;
+		this.ICCID = iCCID;
 	}
 
 	public Date getTimestamp() {
