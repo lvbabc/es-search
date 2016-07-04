@@ -2,11 +2,9 @@ package zx.soft.tksdn.es.query;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import zx.soft.tksdn.common.domain.KeywordsCount;
 import zx.soft.tksdn.common.domain.OverAllRequest;
 import zx.soft.tksdn.common.domain.QueryParams;
-import zx.soft.tksdn.common.index.RecordInfo;
+import zx.soft.tksdn.common.index.SearchResult;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.domain.SimpleAggInfo;
 import zx.soft.utils.config.ConfigUtil;
@@ -369,18 +367,18 @@ public class ESQueryCore {
 	 * @param queryParams
 	 * @return
 	 */
-	private List<RecordInfo> transSearchHit(SearchHit[] searchHists, QueryParams queryParams) {
+	private List<SearchResult> transSearchHit(SearchHit[] searchHists, QueryParams queryParams) {
 		if (searchHists.length == 0) {
 			return null;
 		}
-		List<RecordInfo> sHits = new ArrayList<RecordInfo>();
+		List<SearchResult> sHits = new ArrayList<SearchResult>();
 		//		List<String> highlighting = new ArrayList<String>();
 
 		Map<String, Object> fields = new LinkedHashMap<>();
 		for (SearchHit sHit : searchHists) {
 
 			String json = sHit.getSourceAsString();
-			RecordInfo record = JsonUtils.getObject(json, RecordInfo.class);
+			SearchResult record = JsonUtils.getObject(json, SearchResult.class);
 			record.setId(sHit.getId());
 			if (queryParams.getHlfl() != "") {
 				for (String field : queryParams.getHlfl().split(",")) {
@@ -397,14 +395,8 @@ public class ESQueryCore {
 				}
 			}
 			if (record.getTimestamp() != null) {
-				Date dateBefore = record.getTimestamp();
-				String dump = TimeUtils.transStrToCommonDateStr(dateBefore.toString(), -8);
-				try {
-					Date dateAfter = format.parse(dump);
-					record.setTimestamp(dateAfter);
-				} catch (ParseException e) {
-					logger.error("Exception:{}", LogbackUtil.expection2Str(e));
-				}
+				String dump = TimeUtils.transToCommonDateStr(record.getTimestamp().toString(), -8);
+				record.setTimestamp(dump);
 			}
 			//			browsingRecord.setId(sHit.getId());
 			sHits.add(record);

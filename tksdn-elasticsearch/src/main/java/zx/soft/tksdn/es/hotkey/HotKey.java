@@ -31,7 +31,7 @@ import com.google.common.collect.Multiset;
 
 import zx.soft.tksdn.common.domain.KeywordsCount;
 import zx.soft.tksdn.common.domain.QueryParams;
-import zx.soft.tksdn.common.index.RecordInfo;
+import zx.soft.tksdn.common.index.SearchResult;
 import zx.soft.tksdn.dao.insight.RiakInsight;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.query.ESQueryCore;
@@ -142,10 +142,10 @@ public class HotKey {
 		while (true) {
 
 			QueryResult result = new QueryResult();
-			List<RecordInfo> sHits = new ArrayList<RecordInfo>();
+			List<SearchResult> sHits = new ArrayList<SearchResult>();
 			for (SearchHit hit : scrollResp.getHits().getHits()) {
 				String json = hit.getSourceAsString();
-				RecordInfo record = JsonUtils.getObject(json, RecordInfo.class);
+				SearchResult record = JsonUtils.getObject(json, SearchResult.class);
 				sHits.add(record);
 			}
 			result.setSearchHit(sHits);
@@ -173,7 +173,7 @@ public class HotKey {
 	}
 
 	public void countHotKeys(QueryResult result, Multiset<String> counts) {
-		for (RecordInfo doc : result.getSearchHit()) {
+		for (SearchResult doc : result.getSearchHit()) {
 			String content = doc.getContent();
 			if (content != null) {
 				content = content.replaceAll("[http|https]+[://]+[0-9A-Za-z:/[-]_#[?][=][.][&]]*", "");
