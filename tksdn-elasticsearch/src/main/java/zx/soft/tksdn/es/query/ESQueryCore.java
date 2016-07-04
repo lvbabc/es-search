@@ -395,7 +395,7 @@ public class ESQueryCore {
 				}
 			}
 			if (record.getTimestamp() != null) {
-				String dump = TimeUtils.transToCommonDateStr(record.getTimestamp().toString(), -8);
+				String dump = TimeUtils.transCommonDateStr(record.getTimestamp().toString(), -8);
 				record.setTimestamp(dump);
 			}
 			//			browsingRecord.setId(sHit.getId());

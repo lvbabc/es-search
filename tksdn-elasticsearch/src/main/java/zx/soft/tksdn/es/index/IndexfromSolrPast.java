@@ -89,7 +89,7 @@ public class IndexfromSolrPast {
 
 	private void run() throws ParseException, UnsupportedEncodingException {
 		long now = TimeUtils.getZeroHourTime(System.currentTimeMillis());
-		for (int timeNum = 400; timeNum < 720; timeNum++) {
+		for (int timeNum = 0; timeNum < 24; timeNum++) {
 			int count = 0;
 			long endTime = TimeUtils.transCurrentTime(now, 0, 0, 0, -timeNum);
 			long startTime = TimeUtils.transCurrentTime(now, 0, 0, 0, -1 - timeNum);
