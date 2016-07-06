@@ -114,12 +114,16 @@ public class ESQueryCore {
 			search.setQuery(boolBuilder);
 			mBuilder.add(search);
 		}
+
+		logger.info(queryParams.toString());
+
 		MultiSearchResponse mResponse = mBuilder.execute().actionGet();
 
 		for (MultiSearchResponse.Item item : mResponse.getResponses()) {
 			SearchResponse response = item.getResponse();
 			counts.add(response.getHits().getTotalHits());
 		}
+
 		for (int i = 0; i < keywords.size(); i++) {
 			KeywordsCount keywordsCount = new KeywordsCount();
 			keywordsCount.setKeyword(keywords.get(i));

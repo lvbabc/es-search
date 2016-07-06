@@ -11,6 +11,7 @@ import zx.soft.tksdn.common.domain.KeywordsCount;
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.query.ESQueryCore;
+import zx.soft.utils.time.TimeUtils;
 
 /**
  * @author lvbing
@@ -26,6 +27,15 @@ public class KeywordQueryService {
 		for (String key : keyword.split(",")) {
 			keywords.add(key.trim());
 		}
+		queryParams.setRangeFiled("timestamp");
+		if (queryParams.getRangeStart() == "") {
+			long now = TimeUtils.getZeroHourTime(System.currentTimeMillis());
+			long endTime = TimeUtils.transCurrentTime(now, 0, 0, 0, 0);
+			long startTime = TimeUtils.transCurrentTime(endTime, 0, -1, 0, 0);
+			queryParams.setRangeStart(TimeUtils.transToCommonDateStr(startTime));
+			queryParams.setRangeEnd(TimeUtils.transToCommonDateStr(endTime));
+		}
+
 		logger.info(keywords.toString());
 		return ESQueryCore.getInstance().queryKeywords(keywords,queryParams);
 	}
