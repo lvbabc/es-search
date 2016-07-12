@@ -11,8 +11,6 @@ public class QueryParams implements Cloneable {
 	//索引参数
 	private String indexName = "tekuan";
 	private String indexType = "record";
-	private String preferenceType = "";
-	private String searchType = "";
 
 	//默认查询,参数中不带字段,字段为默认设置
 	private String q = "*";
@@ -51,31 +49,13 @@ public class QueryParams implements Cloneable {
 
 	private OverAllRequest request = null;
 
-	public QueryParams() {
-		//
-	}
-
-	@Override
-	public QueryParams clone() {
-		QueryParams params = null;
-		try {
-			params = (QueryParams) super.clone();
-			//			params.facetDate = (HashMap<String, String>)this.facetDate.clone();
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-		}
-
-		return params;
-	}
-
 	@Override
 	public String toString() {
-		return "QueryParams [indexName=" + indexName + ", indexType=" + indexType + ", preferenceType=" + preferenceType
-				+ ", searchType=" + searchType + ", q=" + q + ", rangeFiled=" + rangeFiled + ", rangeStart="
-				+ rangeStart + ", rangeEnd=" + rangeEnd + ", timeZone=" + timeZone + ", bQ=" + bQ + ", termsAgg="
-				+ termsAgg + ", dateHistAgg=" + dateHistAgg + ", dateInterval=" + dateInterval + ", term=" + term
-				+ ", value=" + value + ", hlfl=" + hlfl + ", sort=" + sort + ", from=" + from + ", size=" + size
-				+ ", id=" + id + ", count=" + count + ", request=" + request + "]";
+		return "QueryParams [indexName=" + indexName + ", indexType=" + indexType + ", q=" + q + ", rangeFiled="
+				+ rangeFiled + ", rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd + ", timeZone=" + timeZone
+				+ ", bQ=" + bQ + ", termsAgg=" + termsAgg + ", dateHistAgg=" + dateHistAgg + ", dateInterval="
+				+ dateInterval + ", term=" + term + ", value=" + value + ", hlfl=" + hlfl + ", sort=" + sort + ", from="
+				+ from + ", size=" + size + ", id=" + id + ", count=" + count + ", request=" + request + "]";
 	}
 
 	public String getIndexName() {
@@ -94,13 +74,6 @@ public class QueryParams implements Cloneable {
 		this.indexType = indexType;
 	}
 
-	public String getPreferenceType() {
-		return preferenceType;
-	}
-
-	public void setPreferenceType(String preferenceType) {
-		this.preferenceType = preferenceType;
-	}
 
 	public int getFrom() {
 		return from;
@@ -116,14 +89,6 @@ public class QueryParams implements Cloneable {
 
 	public void setSize(int size) {
 		this.size = size;
-	}
-
-	public String getSearchType() {
-		return searchType;
-	}
-
-	public void setSearchType(String searchType) {
-		this.searchType = searchType;
 	}
 
 	public String getSort() {
