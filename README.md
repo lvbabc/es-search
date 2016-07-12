@@ -1,20 +1,21 @@
 
-Elasticsearch数据索引服务项目
+# Elasticsearch数据索引服务项目
 
-    基于Java，Elasticsearch,Spring实现。
+> 基于Java，Elasticsearch,Spring实现。
 
 项目内容
-
+```
     项目简介
     项目架构
     开发人员
+```
 
-项目简介
-项目起因
+## 项目简介
+### 项目起因
 
 本项目主要应用于底层搜索。
-项目框架
-
+###项目框架
+```
 tksdn-common: 公共类
 
 tksdn-dao: 数据接口层
@@ -24,17 +25,18 @@ tksdn-rediscache: 数据持久化
 tksdn-elasticsearch: elasticsearch索引搜索工程
 
 tksdn-web: API接口服务层
+```
 
-    备注: 框架持续更新中。
+> 备注: 框架持续更新中。
 
-API文档
-项目架构
+### API文档
+## 项目架构
 
 Elasticsearch 查询分成3个模块，分别是: QueryBuilder SearchRequestBuilder SearchResponse SearchRequestBuilder SearchResponse 基本是固定的，QueryBuilder需要根据具体功能修改
 示例代码
 
 查询时针对具体功能写QueryBuilder，如下
-
+```
  /**
      * 综合搜索
      * @param queryParams
@@ -81,9 +83,10 @@ Elasticsearch 查询分成3个模块，分别是: QueryBuilder SearchRequestBuil
         QueryResult result = getData(queryParams, search);
         return result;
     }
+```
 
-注意事项
-开发人员
+
+## 开发人员
 
 WeChat: lv1559744776
 
