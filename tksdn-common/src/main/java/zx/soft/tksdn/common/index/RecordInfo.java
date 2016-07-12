@@ -7,10 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * POST的数据类，注意：id需要md5，时间都是10位的数字时间戳，精确到秒的
- *
- * @author wanggang
- *
+ *上网信息
  */
 public class RecordInfo {
 
@@ -94,7 +91,7 @@ public class RecordInfo {
 			setContent(test.get("content").toString());
 		}
 		if (test.get("timestamp") != null) {
-//			setTimestamp(test.get("timestamp"));
+			//			setTimestamp(test.get("timestamp"));
 		}
 	}
 
