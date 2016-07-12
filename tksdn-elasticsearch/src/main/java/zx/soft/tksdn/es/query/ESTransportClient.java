@@ -25,12 +25,11 @@ public class ESTransportClient {
 
 		if (client == null) {
 			Properties prop = ConfigUtil.getProps("elasticsearch.properties");
-			Settings settings = Settings
-					.settingsBuilder()
-					.put("cluster.name", prop.getProperty("cluster.name"))
+			Settings settings = Settings.settingsBuilder().put("cluster.name", prop.getProperty("cluster.name"))
 					.put("client.transport.ping_timeout", prop.getProperty("client.transport.ping_timeout"))
-					.put("client.transport.nodes_sampler_interval",
-							prop.getProperty("client.transport.nodes_sampler_interval")).build();
+					.put("client.transport.sniff", true).put("client.transport.nodes_sampler_interval",
+							prop.getProperty("client.transport.nodes_sampler_interval"))
+					.build();
 			client = TransportClient.builder().settings(settings).build();
 			try {
 				String host = prop.getProperty("es.ip");
@@ -41,12 +40,10 @@ public class ESTransportClient {
 								Integer.parseInt(prop.getProperty("es.port"))));
 					}
 				}
-
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 			}
 		}
 		return client;
 	}
-
 }
