@@ -1,26 +1,50 @@
 package zx.soft.tksdn.es.delete;
 
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.Client;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+
+import org.elasticsearch.action.deletebyquery.DeleteByQueryAction;
+import org.elasticsearch.action.deletebyquery.DeleteByQueryRequestBuilder;
+import org.elasticsearch.action.deletebyquery.DeleteByQueryResponse;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.plugin.deletebyquery.DeleteByQueryPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import zx.soft.tksdn.es.query.ESTransportClient;
+import zx.soft.utils.config.ConfigUtil;
 
 public class RemoveData {
 
 	private static Logger logger = LoggerFactory.getLogger(RemoveData.class);
-	private Client client = null;
-	private BulkRequestBuilder bulkRequest = null;
+	private TransportClient client = null;
 
 	public RemoveData() {
-		client = ESTransportClient.getClient();
-		bulkRequest = client.prepareBulk();
+		Properties prop = ConfigUtil.getProps("elasticsearch.properties");
+		Settings settings = Settings.settingsBuilder().put("cluster.name", prop.getProperty("cluster.name"))
+				.put("client.transport.ping_timeout", prop.getProperty("client.transport.ping_timeout"))
+				.put("client.transport.nodes_sampler_interval",
+						prop.getProperty("client.transport.nodes_sampler_interval"))
+				/*.put("client.transport.sniff", true)*/.build();
+		client = TransportClient.builder().settings(settings).addPlugin(DeleteByQueryPlugin.class).build();
+		try {
+			String host = prop.getProperty("es.ip");
+			List<String> hosts = Arrays.asList(host.split(","));
+			if (hosts.size() > 0) {
+				for (int i = 0; i < hosts.size(); i++) {
+					client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hosts.get(i)),
+							Integer.parseInt(prop.getProperty("es.port"))));
+				}
+			}
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void main(String args[]) {
@@ -30,28 +54,12 @@ public class RemoveData {
 
 	public void run() {
 		logger.info("start");
-		QueryBuilder qBuilder = QueryBuilders.matchAllQuery();
-
-		while (true) {
-			SearchResponse scrollResp = client.prepareSearch("tekuan").setQuery(qBuilder).setSize(10000).execute()
-					.actionGet();
-			long count = scrollResp.getHits().getTotalHits();
-			logger.info("该段时间数据总量为:  " + count);
-
-			for (SearchHit hit : scrollResp.getHits().getHits()) {
-				String id = hit.getId();
-				bulkRequest.add(client.prepareDelete("tekuansecond", "record", id));
-			}
-			logger.info(("删除量  " + bulkRequest.numberOfActions()));
-
-			BulkResponse bulkResponse = bulkRequest.get();
-			if (bulkResponse.hasFailures()) {
-				logger.info("failures");
-			}
-			if (scrollResp.getHits().getHits().length == 0) {
-				break;
-			}
-		}
+		QueryBuilder qb = QueryBuilders.termsQuery("protocol_type", "UDP");
+		DeleteByQueryResponse rsp = new DeleteByQueryRequestBuilder(client, DeleteByQueryAction.INSTANCE)
+				.setIndices("tekuan").setTypes("record").setQuery(qb).execute().actionGet();
+		logger.info("The num found   " + rsp.getTotalFound());
+		logger.info("The num deleted   " + rsp.getTotalDeleted());
+		logger.info("The time took   " + rsp.getTook());
 		logger.info("end");
 	}
 }
