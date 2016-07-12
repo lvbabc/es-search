@@ -35,19 +35,25 @@
 			<artifactId>elasticsearch</artifactId>
 			<version>2.3.2</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.elasticsearch.plugin/delete-by-query -->
+		<dependency>
+			<groupId>org.elasticsearch.plugin</groupId>
+			<artifactId>delete-by-query</artifactId>
+			<version>2.3.2</version>
+		</dependency>
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>tksdn-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>tksdn-dao</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.ansj</groupId>
 			<artifactId>ansj_seg</artifactId>
