@@ -1,5 +1,6 @@
 package zx.soft.tksdn.es.index;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +14,8 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +23,7 @@ import zx.soft.tksdn.common.index.RecordInfo;
 import zx.soft.utils.config.ConfigUtil;
 import zx.soft.utils.json.JsonUtils;
 import zx.soft.utils.log.LogbackUtil;
+import zx.soft.utils.time.TimeUtils;
 
 /**
  *批量索引器
@@ -37,6 +41,7 @@ public class ESBulkProcessor {
 
 		this.client = client;
 		bulkProcessor = BulkProcessor.builder(client, new BulkProcessor.Listener() {
+
 			@Override
 			public void beforeBulk(long executionId, BulkRequest request) {
 				logger.info("action数量: " + request.numberOfActions());
@@ -47,6 +52,7 @@ public class ESBulkProcessor {
 				if (response.hasFailures()) {
 					logger.error("部分请求失败");
 				}
+				logger.info("The time took  " + response.getTook());
 			}
 
 			@Override
@@ -72,11 +78,10 @@ public class ESBulkProcessor {
 			if (recordInfos != null) {
 				for (RecordInfo recordInfo : recordInfos) {
 					IndexRequest indexRequest = new IndexRequest(index, type, recordInfo.getId())
-							.source(JsonUtils.toJsonWithoutPretty(getTksdnDoc(recordInfo)));
+							.source(generateJson(recordInfo));
 					bulkProcessor.add(indexRequest);
 				}
 			}
-
 		} catch (Exception e) {
 			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
 		}
@@ -96,11 +101,38 @@ public class ESBulkProcessor {
 	}
 
 	/**
+	 * transToJson
+	 * @param recordInfo
+	 * @return
 	 */
-	public static RecordInfo getTksdnDoc(RecordInfo record) {
-
-		record.setId(null);
-		return record;
+	private XContentBuilder generateJson(RecordInfo recordInfo) {
+		String json = "";
+		XContentBuilder content = null;
+		try {
+			XContentBuilder contentBuilder = XContentFactory.jsonBuilder().startObject();
+			contentBuilder.field("username", recordInfo.getUsername());
+			contentBuilder.field("identity_id", recordInfo.getIdentity_id());
+			contentBuilder.field("phone_num", recordInfo.getPhone_num());
+			contentBuilder.field("ICCID", recordInfo.getICCID());
+			contentBuilder.field("timestamp", TimeUtils.transStrToCommonDateStr(recordInfo.getTimestamp().toString()));
+			contentBuilder.field("src_ip", recordInfo.getSrc_ip());
+			contentBuilder.field("des_ip", recordInfo.getDes_ip());
+			contentBuilder.field("src_port", recordInfo.getSrc_port());
+			contentBuilder.field("des_port", recordInfo.getDes_port());
+			contentBuilder.field("protocol_type", recordInfo.getProtocol_type());
+			contentBuilder.field("header", recordInfo.getHeader());
+			contentBuilder.field("url", recordInfo.getUrl());
+			contentBuilder.field("flow_type", recordInfo.getFlow_type());
+			contentBuilder.field("resource_type", recordInfo.getResource_type());
+			contentBuilder.field("domain_name", recordInfo.getDomain_name());
+			contentBuilder.field("size", recordInfo.getSize());
+			contentBuilder.field("content", recordInfo.getContent());
+			contentBuilder.field("title", recordInfo.getTitle());
+			content = contentBuilder.endObject();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return content;
 	}
 
 	public void closeESBulkProcessor() {
