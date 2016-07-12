@@ -1,23 +1,16 @@
 package zx.soft.tksdn.es.query;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.elasticsearch.action.search.MultiSearchRequestBuilder;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.text.Text;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -38,11 +31,9 @@ import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.common.index.SearchResult;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.domain.SimpleAggInfo;
-import zx.soft.utils.config.ConfigUtil;
 import zx.soft.utils.json.JsonUtils;
 import zx.soft.utils.log.LogbackUtil;
 import zx.soft.utils.regex.RegexUtils;
-import zx.soft.utils.time.TimeUtils;
 
 /**
  * ES搜索类
@@ -57,42 +48,22 @@ public class ESQueryCore {
 
 	private final TransportClient client;
 
-	private static ESQueryCore core = new ESQueryCore();
-
-	private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private static final ESQueryCore core = new ESQueryCore();
 
 	private ESQueryCore() {
-		//		client = ESTransportClient.getClient();
-		//		if (client == null) {
-		Properties prop = ConfigUtil.getProps("elasticsearch.properties");
-		Settings settings = Settings.settingsBuilder().put("cluster.name", prop.getProperty("cluster.name"))
-				.put("client.transport.ping_timeout", prop.getProperty("client.transport.ping_timeout"))
-				.put("client.transport.nodes_sampler_interval",
-						prop.getProperty("client.transport.nodes_sampler_interval"))
-				.build();
-		client = TransportClient.builder().settings(settings).build();
-		try {
-			String host = prop.getProperty("es.ip");
-			List<String> hosts = Arrays.asList(host.split(","));
-			if (hosts.size() > 0) {
-				for (int i = 0; i < hosts.size(); i++) {
-					client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(hosts.get(i)),
-							Integer.parseInt(prop.getProperty("es.port"))));
-				}
-			}
 
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		//		}
+		client = ESTransportClient.getClient();
 	}
 
 	public static ESQueryCore getInstance() {
 		return core;
 	}
 
-	/*
-	 * 获取关键词数量
+	/**
+	 *  获取关键词数量
+	 * @param keywords
+	 * @param queryParams
+	 * @return
 	 */
 	public List<KeywordsCount> queryKeywords(List<String> keywords, QueryParams queryParams) {
 		MultiSearchRequestBuilder mBuilder = client.prepareMultiSearch();
@@ -186,7 +157,6 @@ public class ESQueryCore {
 		SearchRequestBuilder search = getSearcher(queryParams);
 		QueryBuilder qBuilder = null;
 		if (queryParams.getQ() != "*") {
-
 			BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
 			boolBuilder = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", queryParams.getQ()))
 					.should(QueryBuilders.termQuery("title", queryParams.getQ()));
@@ -205,57 +175,10 @@ public class ESQueryCore {
 		return result;
 	}
 
-	public QueryResult hotkey(QueryParams queryParams) {
-
-		SearchRequestBuilder search = getSearcher(queryParams);
-		QueryBuilder queryBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled())
-				.from(queryParams.getRangeStart()).to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss")
-				.timeZone("+08:00");
-		search.setQuery(queryBuilder);
-		QueryResult result = getData(queryParams, search);
-		return result;
-
-	}
-
-	/**
-	 * 获取具体数据
-	 */
-	public QueryResult getData(QueryParams queryParams, SearchRequestBuilder search) {
-
-		SearchResponse response = null;
-		try {
-			response = search.setExplain(true).execute().actionGet();
-		} catch (SearchException e) {
-			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
-			throw new RuntimeException(e);
-		}
-		if (response == null) {//|| response.getHits() == null || response.getHits().getHits().length == 0) {
-			logger.error("no response!");
-			return new QueryResult();
-		}
-		QueryResult result = new QueryResult();
-		SearchHits hits = response.getHits();
-		SearchHit[] searchHists = hits.getHits();
-
-		result.setAgg(transTermAgg(response, queryParams));
-		result.setDateAgg(transDateAgg(response, queryParams));
-		result.setQTime(response.getTookInMillis());
-		result.setNumFound(response.getHits().getTotalHits());
-		//		if (hits.getHits().length != 0) {
-		//			result.setSort(hits.getHits()[0].getSortValues());
-		//		}
-		result.setSearchHit(transSearchHit(searchHists, queryParams));
-		//		result.setHighlighting(highlighting);
-		logger.info("numFound=" + result.getNumFound());
-		logger.info("QTime=" + result.getQTime());
-		//		close();
-		return result;
-	}
-
 	/**
 	 * 构建SearchRequestBuilder,组合参数
 	 */
-	public SearchRequestBuilder getSearcher(QueryParams queryParams) {
+	private SearchRequestBuilder getSearcher(QueryParams queryParams) {
 
 		SearchRequestBuilder search = null;
 		if (queryParams.getIndexName() != "") {
@@ -290,35 +213,54 @@ public class ESQueryCore {
 		}
 		if (queryParams.getHlfl() != "") {
 			for (String field : queryParams.getHlfl().split(",")) {
-				search.addHighlightedField(field);
+				search.addHighlightedField(field).setHighlighterRequireFieldMatch(false);
 			}
 			search.setHighlighterPreTags("<span style=\"color:red\">").setHighlighterPostTags("</span>")
-					.setHighlighterFragmentSize(10000);
+			.setHighlighterFragmentSize(10000);
 		}
 		if (queryParams.getTermsAgg() != "") {
 			search.addAggregation(
-					AggregationBuilders.terms(queryParams.getTermsAgg()).field(queryParams.getTermsAgg()).size(15));
+					AggregationBuilders.terms(queryParams.getTermsAgg()).field(queryParams.getTermsAgg()).size(10));
 		}
 		if (queryParams.getDateHistAgg() != "") {
 			DateHistogramInterval interval = new DateHistogramInterval(queryParams.getDateInterval());
 			search.addAggregation(
 					AggregationBuilders.dateHistogram(queryParams.getDateHistAgg()).field(queryParams.getDateHistAgg())
-							.interval(interval).minDocCount(0).format("yyy-MM-dd HH:mm:ss"));
+					.interval(interval).minDocCount(0).format("yyy-MM-dd HH:mm:ss"));
 		}
-
 		return search;
 	}
 
-	//	public QueryResult test(QueryParams queryParams, boolean isDefault) {
-	//
-	//		QueryBuilder test = QueryBuilders.idsQuery("");
-	//		SearchRequestBuilder search = getSearcher(queryParams);
-	//		search.setQuery(test);
-	//		queryData(queryParams, search);
-	//
-	//		return null;
-	//
-	//	}
+	/**
+	 * 获取具体数据
+	 */
+	private QueryResult getData(QueryParams queryParams, SearchRequestBuilder search) {
+
+		SearchResponse response = null;
+		try {
+			response = search.setExplain(true).execute().actionGet();
+		} catch (SearchException e) {
+			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
+			throw new RuntimeException(e);
+		}
+		if (response.isContextEmpty()) {
+			logger.error("no response!");
+			return new QueryResult();
+		}
+		QueryResult result = new QueryResult();
+		SearchHits hits = response.getHits();
+		SearchHit[] searchHists = hits.getHits();
+
+		result.setAgg(transTermAgg(response, queryParams));
+		result.setDateAgg(transDateAgg(response, queryParams));
+		result.setSearchHit(transSearchHit(searchHists, queryParams));
+		result.setQTime(response.getTookInMillis());
+		result.setNumFound(response.getHits().getTotalHits());
+
+		logger.info("numFound=" + result.getNumFound());
+		logger.info("QTime=" + result.getQTime());
+		return result;
+	}
 
 	/**
 	 * 获取时间聚合查询结果
@@ -376,7 +318,6 @@ public class ESQueryCore {
 			return null;
 		}
 		List<SearchResult> sHits = new ArrayList<SearchResult>();
-		//		List<String> highlighting = new ArrayList<String>();
 
 		Map<String, Object> fields = new LinkedHashMap<>();
 		for (SearchHit sHit : searchHists) {
@@ -398,11 +339,10 @@ public class ESQueryCore {
 					}
 				}
 			}
-			if (record.getTimestamp() != null) {
-				String dump = TimeUtils.transCommonDateStr(record.getTimestamp().toString(), -8);
-				record.setTimestamp(dump);
-			}
-			//			browsingRecord.setId(sHit.getId());
+			//			if (record.getTimestamp() != null) {
+			//				String dump = TimeUtils.transCommonDateStr(record.getTimestamp().toString(), -8);
+			//				record.setTimestamp(dump);
+			//			}
 			sHits.add(record);
 		}
 		return sHits;
