@@ -53,8 +53,6 @@ public class IndexfromSolrNow {
 		pro.put("SMTP", 1);
 		pro.put("HTTPS", 7);
 		pro.put("POP3", 2);
-		pro.put("TCP/IP", 4);
-		pro.put("UDP", 3);
 		pro.put("P2P", 5);
 
 		flo.add("上行");
@@ -93,7 +91,7 @@ public class IndexfromSolrNow {
 		long endTime = TimeUtils.transCurrentTime(now, 0, 0, 0, 0);
 		long startTime = TimeUtils.transCurrentTime(now, 0, 0, 0, -1);
 
-		for (int i = 0; i < 10000; i += 1000) {
+		for (int i = 0; i < 100000; i += 1000) {
 			StringBuilder sBuilder = new StringBuilder();
 			sBuilder.append(BASE_URL + "*:*&start=" + i + "&rows=" + count + "&fq=timestamp:"
 					+ URLEncoder.encode("[", "utf-8") + TimeUtils.transToSolrDateStr(startTime)
