@@ -18,7 +18,6 @@ import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.spring.service.HotKeyService;
 import zx.soft.tksdn.spring.service.KeywordQueryService;
 import zx.soft.tksdn.spring.service.OverAllSearchService;
-import zx.soft.tksdn.spring.service.TrendService;
 import zx.soft.utils.json.JsonUtils;
 
 /**
@@ -35,8 +34,6 @@ public class QueryController {
 	private KeywordQueryService queryService;
 	@Inject
 	private OverAllSearchService searchService;
-	@Inject
-	private TrendService trendService;
 	@Inject
 	private HotKeyService hotKeyService;
 
