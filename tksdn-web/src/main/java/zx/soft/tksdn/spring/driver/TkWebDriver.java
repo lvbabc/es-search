@@ -9,7 +9,7 @@ import zx.soft.utils.driver.ProgramDriver;
  * @author lvbing
  *
  */
-public class TksdnSpringDriver {
+public class TkWebDriver {
 
 	/**
 	 * 主函数
