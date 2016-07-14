@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mainClass=zx.soft.tksdn.spring.driver.TksdnSpringDriver
+mainClass=zx.soft.tksdn.spring.driver.TkWebDriver
 
 # resolve links - $0 may be a softlink
 PRG="$0"
