@@ -130,7 +130,7 @@ public class HotKey {
 		long last = TimeUtils.transCurrentTime(current, 0, 0, 0, -6);
 
 		QueryBuilder qBuilder = QueryBuilders.rangeQuery("timestamp").from(TimeUtils.transToCommonDateStr(last))
-				.to(TimeUtils.transToCommonDateStr(current)).format("yyyy-MM-dd HH:mm:ss").timeZone("+08:00");
+				.to(TimeUtils.transToCommonDateStr(current)).format("yyyy-MM-dd HH:mm:ss");
 		SearchResponse scrollResp = client.prepareSearch("tekuan").setScroll(new TimeValue(60000)).setQuery(qBuilder)
 				.setSize(100).execute().actionGet();
 		long count = scrollResp.getHits().getTotalHits();

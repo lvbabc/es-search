@@ -27,7 +27,7 @@ public class IndexfromSolrNow {
 
 	private final ESBulkProcessor processor;
 	private final Client client;
-	private static final String BASE_URL = "http://192.168.3.56:5920/sentiment/search?q=";
+	private static final String BASE_URL = "http://192.168.3.98:5920/sentiment/search?q=";
 	public static Logger logger = LoggerFactory.getLogger(ESBulkProcessor.class);
 	private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -91,7 +91,7 @@ public class IndexfromSolrNow {
 		long endTime = TimeUtils.transCurrentTime(now, 0, 0, 0, 0);
 		long startTime = TimeUtils.transCurrentTime(now, 0, 0, 0, -1);
 
-		for (int i = 0; i < 100000; i += 1000) {
+		for (int i = 0; i < 5000; i += 1000) {
 			StringBuilder sBuilder = new StringBuilder();
 			sBuilder.append(BASE_URL + "*:*&start=" + i + "&rows=" + count + "&fq=timestamp:"
 					+ URLEncoder.encode("[", "utf-8") + TimeUtils.transToSolrDateStr(startTime)

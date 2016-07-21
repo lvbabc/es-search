@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,7 @@ import zx.soft.tksdn.common.domain.KeywordsCount;
 import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.dao.insight.RiakInsight;
 import zx.soft.tksdn.es.query.ESQueryCore;
+import zx.soft.tksdn.spring.domain.TrendResult;
 import zx.soft.utils.algo.TopN;
 import zx.soft.utils.algo.TopN.KeyValue;
 import zx.soft.utils.json.JsonUtils;
@@ -40,47 +43,39 @@ public class TrendService {
 	private static Logger logger = LoggerFactory.getLogger(TrendService.class);
 
 	public Object getTrendInfos(final QueryParams params) {
-//		long start = System.currentTimeMillis();
-//		// 获得热门关键词
-//		Callable<TrendResult> hotkeyCall = new Callable<TrendResult>() {
-//
-//			@Override
-//			public TrendResult call() throws Exception {
-//				TrendResult hotkeyResult = new TrendResult();
-//				List<KeyValue<String, Integer>> hotKeys = getHotKeys(params);
-//				for (KeyValue<String, Integer> hotKey : hotKeys) {
-//					hotkeyResult.countHotWords(hotKey.getKey(), hotKey.getValue());
-//				}
-//				hotkeyResult.sortHotKeys();
-//				return hotkeyResult;
-//			}
-//		};
-//		FutureTask<TrendResult> hotkeyTask = new FutureTask<>(hotkeyCall);
-//		new Thread(hotkeyTask).start();
-//
-//		TrendResult hotkey = new TrendResult();
-//		try {
-//			hotkey = hotkeyTask.get();
-//		} catch (InterruptedException | ExecutionException e) {
-//			logger.error(e.getMessage());
-//		}
-//
-//		logger.info("获得倾向信息耗时: {}ms", System.currentTimeMillis() - start);
-//
-//		List<Map.Entry<String, Integer>> result = hotkey.getSortedhotKeys();
-//		//		List<KeywordsCount> results = new ArrayList<KeywordsCount>();
-//		for (Entry<String, Integer> entry : result) {
-//			//			KeywordsCount hotKeyResult = new KeywordsCount();
-//			//			hotKeyResult.setKeyword(entry.getKey());
-//			//			hotKeyResult.setCount((long) entry.getValue());
-//			//			results.add(hotKeyResult);
+		long start = System.currentTimeMillis();
+		// 获得热门关键词
+		Callable<TrendResult> hotkeyCall = new Callable<TrendResult>() {
+
+			@Override
+			public TrendResult call() throws Exception {
+				TrendResult hotkeyResult = new TrendResult();
+				List<KeyValue<String, Integer>> hotKeys = getHotKeys(params);
+				for (KeyValue<String, Integer> hotKey : hotKeys) {
+					hotkeyResult.countHotWords(hotKey.getKey(), hotKey.getValue());
+				}
+				hotkeyResult.sortHotKeys();
+				return hotkeyResult;
+			}
+		};
+		FutureTask<TrendResult> hotkeyTask = new FutureTask<>(hotkeyCall);
+		new Thread(hotkeyTask).start();
+
+		TrendResult hotkey = new TrendResult();
+		try {
+			hotkey = hotkeyTask.get();
+		} catch (ExecutionException | InterruptedException e) {
+			logger.error(e.getMessage());
+		}
+
+		logger.info("获得倾向信息耗时: {}ms", System.currentTimeMillis() - start);
+
+		List<Map.Entry<String, Integer>> result = hotkey.getSortedhotKeys();
 		List<String> keywords = new ArrayList<>();
-			//entry.getKey());
-		keywords.add("唯一");keywords.add("7月");keywords.add("亚洲");keywords.add("心情");keywords.add("颜色");
-		keywords.add("陈秋实");keywords.add("运势");keywords.add("喜欢");keywords.add("质量");keywords.add("天气");
-		keywords.add("空气");keywords.add("幸运");keywords.add("世界");keywords.add("星座");keywords.add("数字");
-		keywords.add("朋友");keywords.add("加油");keywords.add("巨蟹");keywords.add("冯建宇");keywords.add("明星");
-//		}
+		for (Entry<String, Integer> entry : result) {
+
+			keywords.add(entry.getKey());
+		}
 		return getEqual(keywords, params);
 	}
 

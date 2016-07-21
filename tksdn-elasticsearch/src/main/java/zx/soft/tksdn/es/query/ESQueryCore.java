@@ -9,6 +9,7 @@ import org.elasticsearch.action.search.MultiSearchRequestBuilder;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.termvectors.MultiTermVectorsRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -78,7 +79,7 @@ public class ESQueryCore {
 			boolBuilder.must(qBuilder);
 			if (queryParams.getRangeStart() != "") {
 				qBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled()).from(queryParams.getRangeStart())
-						.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss").timeZone("+08:00");
+						.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss");
 				boolBuilder.must(qBuilder);
 			}
 			search = getSearcher(queryParams);
@@ -121,7 +122,7 @@ public class ESQueryCore {
 		}
 		if (request.getTimestampstart() != "") {
 			qBuilder = QueryBuilders.rangeQuery("timestamp").from(request.getTimestampstart().trim())
-					.to(request.getTimestampend().trim()).format("yyyy-MM-dd HH:mm:ss").timeZone("+08:00");
+					.to(request.getTimestampend().trim()).format("yyyy-MM-dd HH:mm:ss");
 			boolBuilder.must(qBuilder);
 		}
 		if (!request.getProtocol_type().isEmpty()) {
@@ -166,7 +167,7 @@ public class ESQueryCore {
 		} else if (queryParams.getRangeStart() != "") {
 			queryParams.setRangeFiled("timestamp");
 			qBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled()).from(queryParams.getRangeStart())
-					.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss").timeZone("+08:00");
+					.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss");
 		} else {
 			qBuilder = QueryBuilders.matchAllQuery();
 		}
@@ -228,6 +229,8 @@ public class ESQueryCore {
 					AggregationBuilders.dateHistogram(queryParams.getDateHistAgg()).field(queryParams.getDateHistAgg())
 					.interval(interval).minDocCount(0).format("yyy-MM-dd HH:mm:ss"));
 		}
+		//		search.setExtraSource("filter_path=took,hits.hits._id,hits.hits._score,hits.hits._source&_source=title");
+
 		return search;
 	}
 
@@ -243,7 +246,7 @@ public class ESQueryCore {
 			logger.error("Exception:{}", LogbackUtil.expection2Str(e));
 			throw new RuntimeException(e);
 		}
-		if (response.isContextEmpty()) {
+		if (response.getHits().getTotalHits() == 0) {
 			logger.error("no response!");
 			return new QueryResult();
 		}
@@ -348,42 +351,15 @@ public class ESQueryCore {
 		return sHits;
 	}
 
+	/**
+	 * Test new function
+	 */
+	private void test() {
+		MultiTermVectorsRequestBuilder mBuilder = client.prepareMultiTermVectors().add("tekuan", "record", "");
+
+	}
+
 	public void close() {
 		client.close();
 	}
-
-	/**
-	 * 构建QueryBuilder
-	 * @param queryParams
-	 * @return
-	 */
-	//	private QueryBuilder getQueryBuilder(QueryParams queryParams, boolean isDefault) {
-	//
-	//		QueryBuilder queryBuilder = null;
-	//		//默认查询,返回全部数据
-	//		if (queryParams.getQ() == "*" && isDefault) {
-	//			queryBuilder = QueryBuilders.matchAllQuery();
-	//		}
-	//		//默认查询,返回指定数据
-	//		if (queryParams.getQ() != "*" && isDefault) {
-	//			//默认字段待定
-	//			queryBuilder = QueryBuilders.queryStringQuery(queryParams.getQ());
-	//		}
-	//		//范围查询,目前只用查询日期
-	//		if (queryParams.getRangeFiled() != "" && (!isDefault)) {
-	//			queryBuilder = QueryBuilders.rangeQuery(queryParams.getRangeFiled()).from(queryParams.getRangeStart())
-	//					.to(queryParams.getRangeEnd()).format("yyyy-MM-dd HH:mm:ss").timeZone(queryParams.getTimeZone());
-	//		}
-	//		/**
-	//		 * 查询单个关键词
-	//		 */
-	//		if (queryParams.getQ() != "*" && (!isDefault)) {
-	//			BoolQueryBuilder boolBuilder = QueryBuilders.boolQuery();
-	//			boolBuilder = QueryBuilders.boolQuery().should(QueryBuilders.termQuery("content", queryParams.getQ()))
-	//					.should(QueryBuilders.termQuery("title", queryParams.getQ()));
-	//			queryBuilder = boolBuilder;
-	//		}
-	//		return queryBuilder;
-	//	}
-
 }

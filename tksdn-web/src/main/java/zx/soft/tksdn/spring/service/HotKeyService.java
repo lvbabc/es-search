@@ -78,6 +78,10 @@ public class HotKeyService {
 			startTime = TimeUtils.transCurrentTime(startTime, 0, 0, 0, 1);
 		}
 
+		if (hoursHotKeys.isEmpty()) {
+			logger.error("The hotkey is empty!");
+			return new ArrayList<KeyValue<String, Integer>>();
+		}
 		for (Map<String, Integer> hourHotKey : hoursHotKeys) {
 			for (Entry<String, Integer> entry : hourHotKey.entrySet()) {
 
@@ -111,6 +115,10 @@ public class HotKeyService {
 		}
 		params.setRangeStart(TimeUtils.transToCommonDateStr(startTime));
 		params.setRangeEnd(TimeUtils.transToCommonDateStr(endTime));
+		if (keywords.isEmpty()) {
+			logger.error("The hotkey is empty!");
+			return new ArrayList<KeywordsCount>();
+		}
 		List<KeywordsCount> kCounts = ESQueryCore.getInstance().queryKeywords(keywords, params);
 		Collections.sort(kCounts);
 		return kCounts.subList(0, params.getCount());
