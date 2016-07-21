@@ -22,12 +22,9 @@ public class TksdnESDriver {
 		int exitCode = -1;
 		ProgramDriver pgd = new ProgramDriver();
 		try {
-			//kafka05
 			pgd.addClass("indexfromSolrPast", IndexfromSolrPast.class, "将solr数据导入ES（默认是每小时）");
 			pgd.addClass("indexfromSolrNow", IndexfromSolrNow.class, "将solr数据导入ES（默认是每小时）");
-			//kafka05
 			pgd.addClass("hotkey", HotKey.class, "分时段计算热门关键词（默认是每半小时）");
-			//kafka06
 			pgd.addClass("removedata", RemoveData.class, "删除数据");
 			pgd.driver(args);
 			// Success

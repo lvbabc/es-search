@@ -28,7 +28,8 @@ import zx.soft.utils.json.JsonUtils;
 @Controller
 @RequestMapping("/es")
 public class QueryController {
-	Logger logger = LoggerFactory.getLogger(QueryController.class);
+
+	private static Logger logger = LoggerFactory.getLogger(QueryController.class);
 
 	@Inject
 	private KeywordQueryService queryService;
@@ -47,10 +48,10 @@ public class QueryController {
 	public @ResponseBody Object queryData(HttpServletRequest request) {
 		QueryParams queryParams = new QueryParams();
 		queryParams.setQ(request.getParameter("q") == null ? "*" : request.getParameter("q"));
-		queryParams.setRangeStart(request.getParameter("rangestart") == null ? "*" : request.getParameter("rangestart"));
-		queryParams.setRangeEnd(request.getParameter("rangeend") == null ? "*" : request.getParameter("rangeend"));
+		queryParams.setRangeStart(request.getParameter("rangestart") == null ? "" : request.getParameter("rangestart"));
+		queryParams.setRangeEnd(request.getParameter("rangeend") == null ? "" : request.getParameter("rangeend"));
 
-//		logger.info(queryParams.toString());
+		//		logger.info(queryParams.toString());
 		return queryService.queryStringQuery(queryParams);
 	}
 
@@ -72,7 +73,7 @@ public class QueryController {
 		queryParams.setTermsAgg(request.getParameter("termsAgg") == null ? "" : request.getParameter("termsAgg"));
 		queryParams.setRangeStart(request.getParameter("timestampstart") == null ? "" : request.getParameter("timestampstart"));
 		queryParams.setRangeEnd(request.getParameter("timestampend") == null ? "" : request.getParameter("timestampend"));
-//		logger.info(queryParams.toString());
+		//		logger.info(queryParams.toString());
 		return queryService.querySingle(queryParams);
 	}
 
@@ -102,7 +103,7 @@ public class QueryController {
 		queryParams.setCount(request.getParameter("count") == null ? 20 : Integer.parseInt(request.getParameter("count")));
 		queryParams.setRangeStart(request.getParameter("rangeStart") == null ? "" : request.getParameter("rangeStart"));
 		queryParams.setRangeEnd(request.getParameter("rangeEnd") == null ? "" : request.getParameter("rangeEnd"));
-//		logger.info(queryParams.toString());
+		//		logger.info(queryParams.toString());
 		return hotKeyService.getHotKey(queryParams);//trendService.getTrendInfos(queryParams);
 	}
 }

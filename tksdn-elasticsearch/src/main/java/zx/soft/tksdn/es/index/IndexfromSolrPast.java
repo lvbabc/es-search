@@ -27,7 +27,7 @@ public class IndexfromSolrPast {
 
 	private final ESBulkProcessor processor;
 	private final Client client;
-	private static final String BASE_URL = "http://192.168.3.56:5920/sentiment/search?q=";
+	private static final String BASE_URL = "http://192.168.3.98:5920/sentiment/search?q=";
 	public static Logger logger = LoggerFactory.getLogger(ESBulkProcessor.class);
 	private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -89,12 +89,12 @@ public class IndexfromSolrPast {
 
 	private void run() throws ParseException, UnsupportedEncodingException {
 		long now = TimeUtils.getZeroHourTime(System.currentTimeMillis());
-		for (int timeNum = 0; timeNum < 24; timeNum++) {
+		for (int timeNum = 0; timeNum < 300; timeNum++) {
 			int count = 0;
 			long endTime = TimeUtils.transCurrentTime(now, 0, 0, 0, -timeNum);
 			long startTime = TimeUtils.transCurrentTime(now, 0, 0, 0, -1 - timeNum);
 
-			for (int i = 0; i < 1000; i += 1000) {
+			for (int i = 0; i < 10000; i += 1000) {
 				StringBuilder sBuilder = new StringBuilder();
 				count = 1000;
 				sBuilder.append(BASE_URL + "*:*&start=" + i + "&rows=" + count + "&fq=timestamp:"
@@ -126,8 +126,8 @@ public class IndexfromSolrPast {
 					try {
 						String time = info.getString("timestamp");
 						Date date = format.parse(time);
-//						time = TimeUtils.transStrToCommonDateStr(date.toString(), 8);
-//						date = format.parse(time);
+						//						time = TimeUtils.transStrToCommonDateStr(date.toString(), 8);
+						//						date = format.parse(time);
 						recordInfo = new RecordInfo(info.getString("id"), info.getString("nickname"), createRandomNum(),
 								createRandomNum(), createRandomPort(), date, createRandomIP(), createRandomIP(),
 								createRandomPort(), createRandomPort(), createRandomProtocol(), createRandomHeader(),
