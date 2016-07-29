@@ -33,7 +33,7 @@ import zx.soft.tksdn.common.index.SearchResult;
 import zx.soft.tksdn.dao.insight.RiakInsight;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.query.ESQueryCore;
-import zx.soft.tksdn.es.query.ESTransportClient;
+import zx.soft.tksdn.es.utils.ESTransportClient;
 import zx.soft.utils.algo.TopN;
 import zx.soft.utils.algo.TopN.KeyValue;
 import zx.soft.utils.config.ConfigUtil;
@@ -44,7 +44,7 @@ import zx.soft.utils.time.TimeUtils;
 /**
  * 分时段统计热们关键词：
  *
- * 运行目录：/home/elasticsearch/run-work/timer/insight
+ * 运行目录：/home/elasticsearch/run-work/timer/hoykey
  * 运行命令：./timer_hotkey.sh &
  * @author lvbing
  *

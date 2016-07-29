@@ -6,7 +6,8 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 
-import zx.soft.tksdn.es.query.ESTransportClient;
+import zx.soft.tksdn.es.utils.ESTransportClient;
+
 
 public class ScrollDemo {
 

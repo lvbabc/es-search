@@ -9,7 +9,6 @@ import org.elasticsearch.action.search.MultiSearchRequestBuilder;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.termvectors.MultiTermVectorsRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -32,6 +31,7 @@ import zx.soft.tksdn.common.domain.QueryParams;
 import zx.soft.tksdn.common.index.SearchResult;
 import zx.soft.tksdn.es.domain.QueryResult;
 import zx.soft.tksdn.es.domain.SimpleAggInfo;
+import zx.soft.tksdn.es.utils.ESTransportClient;
 import zx.soft.utils.json.JsonUtils;
 import zx.soft.utils.log.LogbackUtil;
 import zx.soft.utils.regex.RegexUtils;
@@ -342,21 +342,9 @@ public class ESQueryCore {
 					}
 				}
 			}
-			//			if (record.getTimestamp() != null) {
-			//				String dump = TimeUtils.transCommonDateStr(record.getTimestamp().toString(), -8);
-			//				record.setTimestamp(dump);
-			//			}
 			sHits.add(record);
 		}
 		return sHits;
-	}
-
-	/**
-	 * Test new function
-	 */
-	private void test() {
-		MultiTermVectorsRequestBuilder mBuilder = client.prepareMultiTermVectors().add("tekuan", "record", "");
-
 	}
 
 	public void close() {
