@@ -92,5 +92,5 @@ WeChat: lv1559744776
 
 QQ: 1559744776
 
-E-mail: binglvabc@163.com
+E-mail: binglvabc@gmail.com
 
