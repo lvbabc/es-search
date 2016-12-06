@@ -2,18 +2,18 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>zx.soft</groupId>
-	<artifactId>tksdn-search</artifactId>
+	<groupId>lvb</groupId>
+	<artifactId>es-search</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
-	<name>Tksdn-Search [Build POM]</name>
+	<name>ES-Search [Build POM]</name>
 
 	<modules>
-		<module>tksdn-elasticsearch</module>
-		<module>tksdn-common</module>
-		<module>tksdn-web</module>
-		<module>tksdn-rediscache</module>
-		<module>tksdn-dao</module>
+		<module>es-elasticsearch</module>
+		<module>es-common</module>
+		<module>es-web</module>
+		<module>es-rediscache</module>
+		<module>es-dao</module>
 	</modules>
 
 	<properties>
